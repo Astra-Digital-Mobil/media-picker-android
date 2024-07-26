@@ -23,9 +23,11 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_VIDEO_CAPTURE: Int = 1000
     private var fragment: HomeFragment? = null
 
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setUpGallery()
         showStepFragment()
@@ -59,9 +61,11 @@ class MainActivity : AppCompatActivity() {
                 SelectedItemHolder.listOfSelectedVideos,
                 defaultPageType = DefaultPage.PhotoPage
             )
-            transaction.replace(R.id.container, fragment!!, fragment!!::class.java.simpleName)
-            transaction.addToBackStack(fragment!!.javaClass.name)
-            transaction.commitAllowingStateLoss()
+            fragment?.let {
+                transaction.replace(binding.container.id, it, it::class.java.simpleName)
+                transaction.addToBackStack(it.javaClass.name)
+                transaction.commitAllowingStateLoss()
+            }
         } catch (ex: Exception) {
             ex.printStackTrace()
         }

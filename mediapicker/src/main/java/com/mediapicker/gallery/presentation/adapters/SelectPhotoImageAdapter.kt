@@ -17,8 +17,6 @@ import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.R
 import com.mediapicker.gallery.domain.entity.*
 import com.mediapicker.gallery.util.AnimationHelper
-import kotlinx.android.synthetic.main.oss_item_camera_selection.view.*
-import kotlinx.android.synthetic.main.oss_item_photo_selection.view.*
 import java.io.File
 
 
