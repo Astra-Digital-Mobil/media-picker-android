@@ -1,16 +1,19 @@
 package com.mediapicker.sample
 
 import android.os.Bundle
+import android.view.View
 import com.mediapicker.gallery.domain.entity.PhotoFile
 import com.mediapicker.gallery.presentation.fragments.HomeFragment
 import com.mediapicker.gallery.presentation.utils.DefaultPage
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
+import com.mediapicker.sample.databinding.DemoFragmentMainBinding
 import java.io.Serializable
 
 class DemoHomeFragment : HomeFragment() {
 
-    override fun getLayoutId(): Int {
-        return R.layout.demo_fragment_main
+    override fun getChildView(): View {
+        val binding = DemoFragmentMainBinding.inflate(layoutInflater)
+        return binding.root
     }
 
     override fun setHomeAsUp(): Boolean = false

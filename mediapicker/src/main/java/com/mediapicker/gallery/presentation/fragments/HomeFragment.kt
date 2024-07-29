@@ -10,6 +10,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.GalleryConfig
 import com.mediapicker.gallery.R
+import com.mediapicker.gallery.databinding.OssFragmentMainBinding
 import com.mediapicker.gallery.domain.entity.PhotoFile
 import com.mediapicker.gallery.presentation.activity.GalleryActivity
 import com.mediapicker.gallery.presentation.adapters.PagerAdapter
@@ -20,12 +21,13 @@ import com.mediapicker.gallery.presentation.viewmodels.BridgeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.HomeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
 import com.mediapicker.gallery.utils.SnackbarUtils
-import kotlinx.android.synthetic.main.oss_fragment_main.*
 import permissions.dispatcher.ktx.PermissionsRequester
 import permissions.dispatcher.ktx.constructPermissionsRequest
 import java.io.Serializable
 
 open class HomeFragment : BaseFragment() {
+
+    private lateinit var binding: OssFragmentMainBinding
 
     private val homeViewModel: HomeViewModel by lazy {
         getFragmentScopedViewModel { HomeViewModel(Gallery.galleryConfig) }
@@ -84,8 +86,10 @@ open class HomeFragment : BaseFragment() {
         }
     }
 
-
-    override fun getLayoutId() = R.layout.oss_fragment_main
+    override fun getChildView(): View {
+        binding = OssFragmentMainBinding.inflate(layoutInflater)
+        return binding.root
+    }
 
     override fun getScreenTitle() = if (Gallery.galleryConfig.galleryLabels.homeTitle.isNotBlank())
         Gallery.galleryConfig.galleryLabels.homeTitle
@@ -93,10 +97,14 @@ open class HomeFragment : BaseFragment() {
         getString(R.string.oss_title_home_screen)
 
     override fun setUpViews() {
-        action_button.text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
-            Gallery.galleryConfig.galleryLabels.homeAction
-        else
-            getString(R.string.oss_posting_next)
+        binding.actionButton.apply {
+            isSelected = false
+            setOnClickListener { onActionButtonClicked() }
+            text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
+                Gallery.galleryConfig.galleryLabels.homeAction
+            else
+                getString(R.string.oss_posting_next)
+        }
 
         permissionsRequester.launch()
     }
@@ -124,8 +132,6 @@ open class HomeFragment : BaseFragment() {
             }
         }
         openPage()
-        action_button.isSelected = false
-        action_button.setOnClickListener { onActionButtonClicked() }
     }
 
     fun onPermissionDenied() {
@@ -159,7 +165,7 @@ open class HomeFragment : BaseFragment() {
     }
 
     private fun changeActionButtonState(state: Boolean) {
-        action_button.isSelected = state
+        binding.actionButton.isSelected = state
     }
 
     private fun showError(error: String) {
@@ -167,7 +173,7 @@ open class HomeFragment : BaseFragment() {
     }
 
     private fun setUpWithOutTabLayout() {
-        tabLayout.visibility = View.GONE
+        binding.tabLayout.visibility = View.GONE
         PagerAdapter(
             childFragmentManager,
             listOf(
@@ -177,15 +183,17 @@ open class HomeFragment : BaseFragment() {
                 )
             )
         ).apply {
-            viewPager.adapter = this
+            binding.viewPager.adapter = this
         }
     }
 
     private fun openPage() {
-        if (defaultPageToOpen is DefaultPage.PhotoPage) {
-            viewPager.currentItem = 0
-        } else {
-            viewPager.currentItem = 1
+        binding.viewPager.apply {
+            currentItem = if (defaultPageToOpen is DefaultPage.PhotoPage) {
+                0
+            } else {
+                1
+            }
         }
     }
 
@@ -194,19 +202,21 @@ open class HomeFragment : BaseFragment() {
     }
 
     private fun setUpWithTabLayout() {
-        PagerAdapter(
-            childFragmentManager, listOf(
-                PhotoGridFragment.getInstance(
-                    getString(R.string.oss_title_tab_photo),
-                    getPhotosFromArguments()
-                ),
-                VideoGridFragment.getInstance(
-                    getString(R.string.oss_title_tab_video),
-                    getVideosFromArguments()
+        binding.apply {
+            PagerAdapter(
+                childFragmentManager, listOf(
+                    PhotoGridFragment.getInstance(
+                        getString(R.string.oss_title_tab_photo),
+                        getPhotosFromArguments()
+                    ),
+                    VideoGridFragment.getInstance(
+                        getString(R.string.oss_title_tab_video),
+                        getVideosFromArguments()
+                    )
                 )
-            )
-        ).apply { viewPager.adapter = this }
-        tabLayout.setupWithViewPager(viewPager)
+            ).apply { viewPager.adapter = this }
+            tabLayout.setupWithViewPager(viewPager)
+        }
     }
 
 

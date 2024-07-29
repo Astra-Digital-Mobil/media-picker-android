@@ -1,23 +1,21 @@
 package com.mediapicker.gallery.presentation.fragments
 
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.R
 import com.mediapicker.gallery.data.repositories.GalleryService
+import com.mediapicker.gallery.databinding.OssFragmentFolderViewBinding
 import com.mediapicker.gallery.domain.contract.OnItemClickListener
 import com.mediapicker.gallery.domain.entity.PhotoAlbum
 import com.mediapicker.gallery.presentation.adapters.GalleryFolderAdapter
 import com.mediapicker.gallery.presentation.utils.ItemDecorationAlbumColumns
 import com.mediapicker.gallery.presentation.utils.getFragmentScopedViewModel
 import com.mediapicker.gallery.presentation.viewmodels.LoadAlbumViewModel
-import kotlinx.android.synthetic.main.oss_custom_toolbar.*
-import kotlinx.android.synthetic.main.oss_fragment_carousal.*
-import kotlinx.android.synthetic.main.oss_fragment_folder_view.*
 
 class FolderViewFragment : BaseGalleryViewFragment(), OnItemClickListener<PhotoAlbum> {
-
 
     private val loadAlbumViewModel: LoadAlbumViewModel by lazy {
         getFragmentScopedViewModel { LoadAlbumViewModel(GalleryService(Gallery.getApp())) }
@@ -26,6 +24,7 @@ class FolderViewFragment : BaseGalleryViewFragment(), OnItemClickListener<PhotoA
     override fun getScreenTitle() = getString(R.string.oss_title_folder_fragment)
 
     private lateinit var adapter: GalleryFolderAdapter
+    private lateinit var binding: OssFragmentFolderViewBinding
 
     private fun setAlbumData(setOfAlbum: HashSet<PhotoAlbum>) {
         adapter.apply {
@@ -35,26 +34,35 @@ class FolderViewFragment : BaseGalleryViewFragment(), OnItemClickListener<PhotoA
         }
     }
 
-    override fun getLayoutId() = R.layout.oss_fragment_folder_view
+    override fun getChildView(): View {
+        binding = OssFragmentFolderViewBinding.inflate(layoutInflater)
+        return binding.root
+    }
 
     override fun setUpViews() {
         super.setUpViews()
-        adapter = GalleryFolderAdapter(context!!, listOfFolders = emptyList(), onItemClickListener = this)
-        folderRV.apply {
-            this.addItemDecoration(ItemDecorationAlbumColumns(resources.getDimensionPixelSize(R.dimen.module_base), COLUMNS_COUNT))
-            this.layoutManager = GridLayoutManager(this@FolderViewFragment.activity, COLUMNS_COUNT)
-            this.adapter = this@FolderViewFragment.adapter
+        adapter = GalleryFolderAdapter(requireContext(), listOfFolders = emptyList(), onItemClickListener = this)
+        binding.apply {
+            folderRV.apply {
+                this.addItemDecoration(ItemDecorationAlbumColumns(resources.getDimensionPixelSize(R.dimen.module_base), COLUMNS_COUNT))
+                this.layoutManager = GridLayoutManager(this@FolderViewFragment.activity, COLUMNS_COUNT)
+                this.adapter = this@FolderViewFragment.adapter
+            }
+
+            actionButton.isSelected = true
+
+            if (Gallery.galleryConfig.galleryLabels.galleryFolderAction.isNotBlank()) {
+                actionButton.text = Gallery.galleryConfig.galleryLabels.galleryFolderAction
+            }
+
+            actionButton.isAllCaps = Gallery.galleryConfig.textAllCaps
+            actionButton.setOnClickListener { onActionButtonClick() }
         }
-        actionButton.isSelected = true
 
-        if (Gallery.galleryConfig.galleryLabels.galleryFolderAction.isNotBlank()) {
-            actionButton.text = Gallery.galleryConfig.galleryLabels.galleryFolderAction
+        baseBinding.customToolbar.apply {
+            toolbarTitle.isAllCaps = Gallery.galleryConfig.textAllCaps
+            toolbarTitle.gravity = Gallery.galleryConfig.galleryLabels.titleAlignment
         }
-
-        toolbarTitle.isAllCaps = Gallery.galleryConfig.textAllCaps
-        actionButton.isAllCaps = Gallery.galleryConfig.textAllCaps
-
-        toolbarTitle.gravity = Gallery.galleryConfig.galleryLabels.titleAlignment
     }
 
     override fun initViewModels() {

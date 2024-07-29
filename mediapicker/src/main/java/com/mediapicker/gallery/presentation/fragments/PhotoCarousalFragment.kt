@@ -11,7 +11,7 @@ import androidx.lifecycle.Observer
 import com.google.android.material.snackbar.Snackbar
 import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.GalleryConfig
-import com.mediapicker.gallery.R
+import com.mediapicker.gallery.databinding.OssFragmentCarousalBinding
 import com.mediapicker.gallery.domain.contract.GalleryPagerCommunicator
 import com.mediapicker.gallery.domain.entity.GalleryViewMediaType
 import com.mediapicker.gallery.domain.entity.MediaGalleryEntity
@@ -29,14 +29,11 @@ import com.mediapicker.gallery.presentation.viewmodels.BridgeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.HomeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
 import com.mediapicker.gallery.utils.SnackbarUtils
-import kotlinx.android.synthetic.main.oss_custom_toolbar.*
-import kotlinx.android.synthetic.main.oss_custom_toolbar.view.toolbarBackButton
-import kotlinx.android.synthetic.main.oss_fragment_carousal.*
 import permissions.dispatcher.PermissionRequest
 import permissions.dispatcher.ktx.PermissionsRequester
 import permissions.dispatcher.ktx.constructPermissionsRequest
 import java.io.Serializable
-import java.util.*
+
 
 open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     MediaGalleryView.OnGalleryItemClickListener {
@@ -74,7 +71,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 onPermissionDenied = ::onPermissionDenied,
                 onNeverAskAgain = ::showNeverAskAgainPermission,
                 requiresPermission = ::checkPermissions,
-                onShowRationale = :: onShowRationale
+                onShowRationale = ::onShowRationale
             )
         } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU && Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             constructPermissionsRequest(
@@ -85,7 +82,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 onPermissionDenied = ::onPermissionDenied,
                 onNeverAskAgain = ::showNeverAskAgainPermission,
                 requiresPermission = ::checkPermissions,
-                onShowRationale = :: onShowRationale
+                onShowRationale = ::onShowRationale
             )
         } else {
             constructPermissionsRequest(
@@ -97,50 +94,60 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 onPermissionDenied = ::onPermissionDenied,
                 onNeverAskAgain = ::showNeverAskAgainPermission,
                 requiresPermission = ::checkPermissions,
-                onShowRationale = :: onShowRationale
+                onShowRationale = ::onShowRationale
             )
         }
     }
 
     private fun onShowRationale(permissionRequest: PermissionRequest) {
-        Gallery.galleryConfig.galleryCommunicator?.onShowPermissionRationale(PermissionRequestWrapper(permissionRequest))
+        Gallery.galleryConfig.galleryCommunicator?.onShowPermissionRationale(
+            PermissionRequestWrapper(permissionRequest)
+        )
     }
 
-    override fun getLayoutId() = R.layout.oss_fragment_carousal
+    private lateinit var binding: OssFragmentCarousalBinding
 
     override fun getScreenTitle() = if (Gallery.galleryConfig.galleryLabels.homeTitle.isNotBlank())
         Gallery.galleryConfig.galleryLabels.homeTitle
     else
-        getString(R.string.oss_title_home_screen)
+        getString(com.mediapicker.gallery.R.string.oss_title_home_screen)
+
+
+    override fun getChildView(): View {
+        binding = OssFragmentCarousalBinding.inflate(layoutInflater)
+        return binding.root
+    }
 
     override fun setUpViews() {
         Gallery.pagerCommunicator = this
 
-        if (Gallery.galleryConfig.showPreviewCarousal.showCarousal) {
-            mediaGalleryViewContainer.visibility = View.VISIBLE
-            mediaGalleryView.setOnGalleryClickListener(this)
-            if (Gallery.galleryConfig.showPreviewCarousal.imageId != 0) {
-                mediaGalleryView.updateDefaultPhoto(Gallery.galleryConfig.showPreviewCarousal.imageId)
+        binding.apply {
+            if (Gallery.galleryConfig.showPreviewCarousal.showCarousal) {
+                binding.mediaGalleryViewContainer.visibility = View.VISIBLE
+                mediaGalleryView.setOnGalleryClickListener(this@PhotoCarousalFragment)
+                if (Gallery.galleryConfig.showPreviewCarousal.imageId != 0) {
+                    mediaGalleryView.updateDefaultPhoto(Gallery.galleryConfig.showPreviewCarousal.imageId)
+                }
+                if (Gallery.galleryConfig.showPreviewCarousal.previewText != 0) {
+                    mediaGalleryView.updateDefaultText(Gallery.galleryConfig.showPreviewCarousal.previewText)
+                }
             }
-            if (Gallery.galleryConfig.showPreviewCarousal.previewText != 0) {
-                mediaGalleryView.updateDefaultText(Gallery.galleryConfig.showPreviewCarousal.previewText)
-            }
+
+            actionButton.text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
+                Gallery.galleryConfig.galleryLabels.homeAction
+            else
+                getString(com.mediapicker.gallery.R.string.oss_posting_next)
         }
 
-        toolbarTitle.isAllCaps = Gallery.galleryConfig.textAllCaps
-        action_button.isAllCaps = Gallery.galleryConfig.textAllCaps
-
-        toolbarTitle.gravity = Gallery.galleryConfig.galleryLabels.titleAlignment
-
-        toolbarBackButton.toolbarBackButton.setImageResource(Gallery.galleryConfig.galleryUiConfig.backIcon)
-
-        action_button.text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
-            Gallery.galleryConfig.galleryLabels.homeAction
-        else
-            getString(R.string.oss_posting_next)
+        baseBinding.customToolbar.apply {
+            toolbarTitle.isAllCaps = Gallery.galleryConfig.textAllCaps
+            toolbarTitle.gravity = Gallery.galleryConfig.galleryLabels.titleAlignment
+            toolbarBackButton.setImageResource(Gallery.galleryConfig.galleryUiConfig.backIcon)
+        }
 
         permissionsRequester.launch()
     }
+
 
     fun checkPermissions() {
         if (!isRemoving && isAdded) {
@@ -162,8 +169,10 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 }
             }
             openPage()
-            action_button.isSelected = false
-            action_button.setOnClickListener { onActionButtonClicked() }
+            binding.actionButton.apply {
+                isSelected = false
+                setOnClickListener { onActionButtonClicked() }
+            }
         }
     }
 
@@ -173,11 +182,11 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     fun addMediaForPager(mediaGalleryEntity: MediaGalleryEntity) {
-        mediaGalleryView.addMediaForPager(mediaGalleryEntity)
+        binding.mediaGalleryView.addMediaForPager(mediaGalleryEntity)
     }
 
     fun removeMediaFromPager(mediaGalleryEntity: MediaGalleryEntity) {
-        mediaGalleryView.removeMediaFromPager(mediaGalleryEntity)
+        binding.mediaGalleryView.removeMediaFromPager(mediaGalleryEntity)
     }
 
     fun showNeverAskAgainPermission() {
@@ -201,7 +210,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     override fun setHomeAsUp() = true
 
     fun setActionButtonLabel(label: String) {
-        action_button.text = label
+        binding.actionButton.text = label
     }
 
     fun setCarousalActionListener(carousalActionListener: CarousalActionListener?) {
@@ -215,7 +224,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
 
     private fun changeActionButtonState(state: Boolean) {
         Gallery.galleryConfig.galleryCommunicator?.onStepValidate(state)
-        action_button.isSelected = state
+        binding.actionButton.isSelected = state
     }
 
     private fun showError(error: String) {
@@ -223,26 +232,30 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     private fun setUpWithOutTabLayout() {
-        tabLayout.visibility = View.GONE
-        mediaGalleryView.setImagesForPager(convertPhotoFileToMediaGallery(getPhotosFromArguments()))
+        binding.tabLayout.visibility = View.GONE
+        binding.mediaGalleryView.setImagesForPager(
+            convertPhotoFileToMediaGallery(
+                getPhotosFromArguments()
+            )
+        )
         PagerAdapter(
             childFragmentManager,
             listOf(
                 PhotoGridFragment.getInstance(
-                    getString(R.string.oss_title_tab_photo),
+                    getString(com.mediapicker.gallery.R.string.oss_title_tab_photo),
                     getPhotosFromArguments()
                 )
             )
         ).apply {
-            viewPager.adapter = this
+            binding.viewPager.adapter = this
         }
     }
 
     private fun openPage() {
         if (defaultPageToOpen is DefaultPage.PhotoPage) {
-            viewPager.currentItem = 0
+            binding.viewPager.currentItem = 0
         } else {
-            viewPager.currentItem = 1
+            binding.viewPager.currentItem = 1
         }
     }
 
@@ -251,19 +264,23 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     private fun setUpWithTabLayout() {
-        PagerAdapter(
-            childFragmentManager, listOf(
-                PhotoGridFragment.getInstance(
-                    getString(R.string.oss_title_tab_photo),
-                    getPhotosFromArguments()
-                ),
-                VideoGridFragment.getInstance(
-                    getString(R.string.oss_title_tab_video),
-                    getVideosFromArguments()
+        binding.apply {
+            PagerAdapter(
+                childFragmentManager, listOf(
+                    PhotoGridFragment.getInstance(
+                        getString(com.mediapicker.gallery.R.string.oss_title_tab_photo),
+                        getPhotosFromArguments()
+                    ),
+                    VideoGridFragment.getInstance(
+                        getString(com.mediapicker.gallery.R.string.oss_title_tab_video),
+                        getVideosFromArguments()
+                    )
                 )
-            )
-        ).apply { viewPager.adapter = this }
-        tabLayout.setupWithViewPager(viewPager)
+            ).apply {
+                binding.viewPager.adapter = this
+            }
+            binding.tabLayout.setupWithViewPager(viewPager)
+        }
     }
 
 
@@ -335,12 +352,19 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
 
     override fun onPreviewItemsUpdated(listOfSelectedPhotos: List<PhotoFile>) {
         if (Gallery.galleryConfig.showPreviewCarousal.addImage) {
-            mediaGalleryView.setImagesForPager(convertPhotoFileToMediaGallery(listOfSelectedPhotos))
+            binding.mediaGalleryView.setImagesForPager(
+                convertPhotoFileToMediaGallery(
+                    listOfSelectedPhotos
+                )
+            )
         }
     }
 
     override fun onGalleryItemClick(mediaIndex: Int) {
-        Gallery.carousalActionListener?.onGalleryImagePreview(mediaIndex, bridgeViewModel.getSelectedPhotos().size)
+        Gallery.carousalActionListener?.onGalleryImagePreview(
+            mediaIndex,
+            bridgeViewModel.getSelectedPhotos().size
+        )
         MediaGalleryActivity.startActivityForResult(
             this, convertPhotoFileToMediaGallery(
                 bridgeViewModel.getSelectedPhotos()
@@ -356,8 +380,11 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 val bundle = data.extras
                 index = bundle!!.getInt("gallery_media_index", 0)
             }
-            Gallery.carousalActionListener?.onGalleryImagePreviewClosed(index, bridgeViewModel.getSelectedPhotos().size)
-            mediaGalleryView.setSelectedPhoto(index)
+            Gallery.carousalActionListener?.onGalleryImagePreviewClosed(
+                index,
+                bridgeViewModel.getSelectedPhotos().size
+            )
+            binding.mediaGalleryView.setSelectedPhoto(index)
         }
     }
 }

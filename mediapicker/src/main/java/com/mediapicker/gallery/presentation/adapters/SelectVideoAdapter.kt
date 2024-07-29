@@ -28,7 +28,7 @@ class SelectVideoAdapter constructor(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            ITEM_TYPE_VIDEO -> RecordVideoViewHolder(
+            ITEM_TYPE_RECORD_VIDEO -> RecordVideoViewHolder(
                 OssItemCameraSelectionBinding.inflate(
                     inflater,
                     parent,
@@ -49,16 +49,15 @@ class SelectVideoAdapter constructor(
 
 
     override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
-        when {
-            viewHolder.itemViewType == ITEM_TYPE_RECORD_VIDEO -> {
+        when (viewHolder.itemViewType) {
+            ITEM_TYPE_RECORD_VIDEO -> {
                 val recordVH = viewHolder as RecordVideoViewHolder
                 recordVH.binding.img.setImageResource(R.drawable.oss_media_ic_slow_motion_video_black_24dp)
                 recordVH.binding.folderName.text =
                     context.getString(R.string.oss_label_record_video)
                 recordVH.itemView.setOnClickListener { onItemClickListener?.recordVideo() }
             }
-
-            viewHolder.itemViewType == ITEM_TYPE_VIDEO -> {
+            ITEM_TYPE_VIDEO -> {
                 val videoVH = viewHolder as VideoViewHolder
                 videoVH.itemView.setOnClickListener {
                     onItemClickListener?.onVideoItemClick(
