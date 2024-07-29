@@ -6,6 +6,8 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
+import androidx.annotation.LayoutRes
+import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import com.mediapicker.gallery.R
 import com.mediapicker.gallery.databinding.OssFragmentBaseBinding
@@ -21,6 +23,11 @@ open abstract class BaseFragment : Fragment() {
     }
 
     lateinit var baseBinding: OssFragmentBaseBinding
+//
+//    private lateinit var _binding: VB
+//    protected val binding get() = _binding
+
+    lateinit var childView: View
 
     @Suppress("UNCHECKED_CAST")
     protected fun getPhotosFromArguments(): List<PhotoFile> {
@@ -48,17 +55,20 @@ open abstract class BaseFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         baseBinding = OssFragmentBaseBinding.inflate(layoutInflater, container, false)
-            .apply {
-                baseBinding.baseContainer.addView(getChildView())
-            }
+        childView = inflater.inflate(getLayoutId(),null)
+        baseBinding.baseContainer.addView(childView)
         return baseBinding.root
     }
 
-    abstract fun getChildView(): View
+//    abstract fun getChildView(): View
+
+    @LayoutRes
+    abstract fun getLayoutId(): Int
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setToolbar()
+//        setupBinding()
         initViewModels()
         setUpViews()
     }

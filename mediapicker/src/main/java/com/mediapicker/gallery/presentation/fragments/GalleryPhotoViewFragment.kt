@@ -3,7 +3,9 @@ package com.mediapicker.gallery.presentation.fragments
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.widget.AppCompatButton
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.R
@@ -26,7 +28,8 @@ class GalleryPhotoViewFragment : BaseGalleryViewFragment() {
     lateinit var adapter: SelectPhotoImageAdapter
 
     private var photoValidationAction: ValidatePhotos = ValidatePhotos()
-    private lateinit var binding: OssFragmentFolderViewBinding
+    private lateinit var folderRV: RecyclerView
+    private lateinit var actionButton: AppCompatButton
 
     private val photoAlbum: PhotoAlbum by lazy {
         arguments?.getSerializable(EXTRA_SELECTED_ALBUM) as PhotoAlbum
@@ -49,13 +52,13 @@ class GalleryPhotoViewFragment : BaseGalleryViewFragment() {
 
     override fun getScreenTitle() = photoAlbum.name ?: ""
 
-    override fun getChildView(): View {
-        binding = OssFragmentFolderViewBinding.inflate(layoutInflater)
-        return binding.root
-    }
+    override fun getLayoutId() = R.layout.oss_fragment_folder_view
 
     override fun setUpViews() {
         super.setUpViews()
+        folderRV = childView.findViewById(R.id.folderRV)
+        actionButton = childView.findViewById(R.id.actionButton)
+
         photoAlbum.let { album ->
             adapter = SelectPhotoImageAdapter(
                 album.getAlbumEntries(),
@@ -64,8 +67,6 @@ class GalleryPhotoViewFragment : BaseGalleryViewFragment() {
                 fromGallery = false
             )
         }
-
-        binding.apply {
             folderRV.apply {
                 this.addItemDecoration(
                     ItemDecorationAlbumColumns(
@@ -82,7 +83,7 @@ class GalleryPhotoViewFragment : BaseGalleryViewFragment() {
             }
             actionButton.isAllCaps = Gallery.galleryConfig.textAllCaps
             actionButton.setOnClickListener { onActionButtonClick() }
-        }
+
 
         baseBinding.customToolbar.apply {
             toolbarTitle.isAllCaps = Gallery.galleryConfig.textAllCaps

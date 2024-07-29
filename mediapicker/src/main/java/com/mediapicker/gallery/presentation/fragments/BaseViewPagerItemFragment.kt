@@ -1,13 +1,13 @@
 package com.mediapicker.gallery.presentation.fragments
 
 import android.view.View
+import android.widget.ProgressBar
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.R
-import com.mediapicker.gallery.databinding.OssFragmentGalleryBinding
 import com.mediapicker.gallery.presentation.utils.getActivityScopedViewModel
 import com.mediapicker.gallery.presentation.viewmodels.BridgeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.StateData
@@ -18,7 +18,6 @@ import com.mediapicker.gallery.utils.SnackbarUtils
 abstract class BaseViewPagerItemFragment : BaseFragment() {
 
     var pageTitle = ""
-    private lateinit var binding: OssFragmentGalleryBinding
 
     protected val bridgeViewModel: BridgeViewModel by lazy {
         getActivityScopedViewModel {
@@ -38,7 +37,7 @@ abstract class BaseViewPagerItemFragment : BaseFragment() {
     }
 
     override fun setUpViews() {
-        binding.ossRecycleView.apply {
+        childView.findViewById<RecyclerView>(R.id.ossRecycleView).apply {
             val spacing = resources.getDimensionPixelSize(R.dimen.gallery_item_offset)
             val gridLayoutManager = GridLayoutManager(context, 3)
             this.layoutManager = gridLayoutManager
@@ -51,10 +50,7 @@ abstract class BaseViewPagerItemFragment : BaseFragment() {
 
     abstract fun getMediaAdapter(): RecyclerView.Adapter<RecyclerView.ViewHolder>
 
-    override fun getChildView(): View {
-        binding = OssFragmentGalleryBinding.inflate(layoutInflater)
-        return binding.root
-    }
+    override fun getLayoutId() = R.layout.oss_fragment_gallery
 
     abstract fun getBaseLoadMediaViewModel(): BaseLoadMediaViewModel
 
@@ -73,17 +69,13 @@ abstract class BaseViewPagerItemFragment : BaseFragment() {
     }
 
     protected open fun hideProgressBar() {
-        binding.apply {
-            progressBar.visibility = View.GONE
-            ossRecycleView.visibility = View.VISIBLE
-        }
+        childView.findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
+        childView.findViewById<RecyclerView>(R.id.ossRecycleView).visibility = View.VISIBLE
     }
 
     protected open fun showProgressBar() {
-        binding.apply {
-            progressBar.visibility = View.VISIBLE
-            ossRecycleView.visibility = View.GONE
-        }
+        childView.findViewById<ProgressBar>(R.id.progressBar).visibility = View.VISIBLE
+        childView.findViewById<RecyclerView>(R.id.ossRecycleView).visibility = View.GONE
     }
 
     protected open fun showMsg(msg: String) {

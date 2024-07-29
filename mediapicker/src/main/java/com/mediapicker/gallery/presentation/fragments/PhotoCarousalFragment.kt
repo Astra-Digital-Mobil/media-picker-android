@@ -7,11 +7,15 @@ import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
+import androidx.appcompat.widget.AppCompatButton
 import androidx.lifecycle.Observer
+import androidx.viewpager.widget.ViewPager
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
 import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.GalleryConfig
-import com.mediapicker.gallery.databinding.OssFragmentCarousalBinding
+import com.mediapicker.gallery.R
 import com.mediapicker.gallery.domain.contract.GalleryPagerCommunicator
 import com.mediapicker.gallery.domain.entity.GalleryViewMediaType
 import com.mediapicker.gallery.domain.entity.MediaGalleryEntity
@@ -39,6 +43,11 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     MediaGalleryView.OnGalleryItemClickListener {
 
     private val PHOTO_PREVIEW = 43475
+
+    private lateinit var mediaGalleryView: MediaGalleryView
+    private lateinit var actionButton: AppCompatButton
+    private lateinit var viewPager: ViewPager
+    private lateinit var tabLayout: TabLayout
 
     private val homeViewModel: HomeViewModel by lazy {
         getFragmentScopedViewModel { HomeViewModel(Gallery.galleryConfig) }
@@ -105,7 +114,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
         )
     }
 
-    private lateinit var binding: OssFragmentCarousalBinding
+    override fun getLayoutId() = R.layout.oss_fragment_carousal
 
     override fun getScreenTitle() = if (Gallery.galleryConfig.galleryLabels.homeTitle.isNotBlank())
         Gallery.galleryConfig.galleryLabels.homeTitle
@@ -113,31 +122,32 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
         getString(com.mediapicker.gallery.R.string.oss_title_home_screen)
 
 
-    override fun getChildView(): View {
-        binding = OssFragmentCarousalBinding.inflate(layoutInflater)
-        return binding.root
-    }
-
     override fun setUpViews() {
         Gallery.pagerCommunicator = this
 
-        binding.apply {
-            if (Gallery.galleryConfig.showPreviewCarousal.showCarousal) {
-                binding.mediaGalleryViewContainer.visibility = View.VISIBLE
-                mediaGalleryView.setOnGalleryClickListener(this@PhotoCarousalFragment)
-                if (Gallery.galleryConfig.showPreviewCarousal.imageId != 0) {
-                    mediaGalleryView.updateDefaultPhoto(Gallery.galleryConfig.showPreviewCarousal.imageId)
-                }
-                if (Gallery.galleryConfig.showPreviewCarousal.previewText != 0) {
-                    mediaGalleryView.updateDefaultText(Gallery.galleryConfig.showPreviewCarousal.previewText)
-                }
-            }
+        mediaGalleryView = childView.findViewById(R.id.mediaGalleryView)
+        actionButton = childView.findViewById(R.id.action_button)
+        tabLayout = childView.findViewById(R.id.tabLayout)
+        viewPager = childView.findViewById(R.id.viewPager)
 
-            actionButton.text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
-                Gallery.galleryConfig.galleryLabels.homeAction
-            else
-                getString(com.mediapicker.gallery.R.string.oss_posting_next)
+        val mediaGalleryViewContainer: AppBarLayout =
+            childView.findViewById(R.id.mediaGalleryViewContainer)
+        if (Gallery.galleryConfig.showPreviewCarousal.showCarousal) {
+            mediaGalleryViewContainer.visibility = View.VISIBLE
+            mediaGalleryView.setOnGalleryClickListener(this@PhotoCarousalFragment)
+            if (Gallery.galleryConfig.showPreviewCarousal.imageId != 0) {
+                mediaGalleryView.updateDefaultPhoto(Gallery.galleryConfig.showPreviewCarousal.imageId)
+            }
+            if (Gallery.galleryConfig.showPreviewCarousal.previewText != 0) {
+                mediaGalleryView.updateDefaultText(Gallery.galleryConfig.showPreviewCarousal.previewText)
+            }
         }
+
+        actionButton.text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
+            Gallery.galleryConfig.galleryLabels.homeAction
+        else
+            getString(com.mediapicker.gallery.R.string.oss_posting_next)
+
 
         baseBinding.customToolbar.apply {
             toolbarTitle.isAllCaps = Gallery.galleryConfig.textAllCaps
@@ -169,7 +179,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 }
             }
             openPage()
-            binding.actionButton.apply {
+            childView.findViewById<AppCompatButton>(R.id.action_button).apply {
                 isSelected = false
                 setOnClickListener { onActionButtonClicked() }
             }
@@ -182,11 +192,11 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     fun addMediaForPager(mediaGalleryEntity: MediaGalleryEntity) {
-        binding.mediaGalleryView.addMediaForPager(mediaGalleryEntity)
+        mediaGalleryView.addMediaForPager(mediaGalleryEntity)
     }
 
     fun removeMediaFromPager(mediaGalleryEntity: MediaGalleryEntity) {
-        binding.mediaGalleryView.removeMediaFromPager(mediaGalleryEntity)
+        mediaGalleryView.removeMediaFromPager(mediaGalleryEntity)
     }
 
     fun showNeverAskAgainPermission() {
@@ -210,7 +220,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     override fun setHomeAsUp() = true
 
     fun setActionButtonLabel(label: String) {
-        binding.actionButton.text = label
+        actionButton.text = label
     }
 
     fun setCarousalActionListener(carousalActionListener: CarousalActionListener?) {
@@ -224,7 +234,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
 
     private fun changeActionButtonState(state: Boolean) {
         Gallery.galleryConfig.galleryCommunicator?.onStepValidate(state)
-        binding.actionButton.isSelected = state
+        actionButton.isSelected = state
     }
 
     private fun showError(error: String) {
@@ -232,8 +242,8 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     private fun setUpWithOutTabLayout() {
-        binding.tabLayout.visibility = View.GONE
-        binding.mediaGalleryView.setImagesForPager(
+        tabLayout.visibility = View.GONE
+        mediaGalleryView.setImagesForPager(
             convertPhotoFileToMediaGallery(
                 getPhotosFromArguments()
             )
@@ -247,15 +257,15 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 )
             )
         ).apply {
-            binding.viewPager.adapter = this
+            viewPager.adapter = this
         }
     }
 
     private fun openPage() {
         if (defaultPageToOpen is DefaultPage.PhotoPage) {
-            binding.viewPager.currentItem = 0
+            viewPager.currentItem = 0
         } else {
-            binding.viewPager.currentItem = 1
+            viewPager.currentItem = 1
         }
     }
 
@@ -264,7 +274,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     private fun setUpWithTabLayout() {
-        binding.apply {
+        childView.findViewById<ViewPager>(R.id.viewPager).apply {
             PagerAdapter(
                 childFragmentManager, listOf(
                     PhotoGridFragment.getInstance(
@@ -277,9 +287,9 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                     )
                 )
             ).apply {
-                binding.viewPager.adapter = this
+                childView.findViewById<ViewPager>(R.id.viewPager).adapter = this
             }
-            binding.tabLayout.setupWithViewPager(viewPager)
+            childView.findViewById<TabLayout>(R.id.tabLayout).setupWithViewPager(this)
         }
     }
 
@@ -352,7 +362,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
 
     override fun onPreviewItemsUpdated(listOfSelectedPhotos: List<PhotoFile>) {
         if (Gallery.galleryConfig.showPreviewCarousal.addImage) {
-            binding.mediaGalleryView.setImagesForPager(
+            mediaGalleryView.setImagesForPager(
                 convertPhotoFileToMediaGallery(
                     listOfSelectedPhotos
                 )
@@ -384,7 +394,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 index,
                 bridgeViewModel.getSelectedPhotos().size
             )
-            binding.mediaGalleryView.setSelectedPhoto(index)
+            mediaGalleryView.setSelectedPhoto(index)
         }
     }
 }

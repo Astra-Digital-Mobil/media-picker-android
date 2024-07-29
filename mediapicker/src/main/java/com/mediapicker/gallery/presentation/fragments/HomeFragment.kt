@@ -5,12 +5,15 @@ import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.widget.TableLayout
+import androidx.appcompat.widget.AppCompatButton
 import androidx.lifecycle.Observer
+import androidx.viewpager.widget.ViewPager
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
 import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.GalleryConfig
 import com.mediapicker.gallery.R
-import com.mediapicker.gallery.databinding.OssFragmentMainBinding
 import com.mediapicker.gallery.domain.entity.PhotoFile
 import com.mediapicker.gallery.presentation.activity.GalleryActivity
 import com.mediapicker.gallery.presentation.adapters.PagerAdapter
@@ -26,8 +29,6 @@ import permissions.dispatcher.ktx.constructPermissionsRequest
 import java.io.Serializable
 
 open class HomeFragment : BaseFragment() {
-
-    private lateinit var binding: OssFragmentMainBinding
 
     private val homeViewModel: HomeViewModel by lazy {
         getFragmentScopedViewModel { HomeViewModel(Gallery.galleryConfig) }
@@ -86,10 +87,8 @@ open class HomeFragment : BaseFragment() {
         }
     }
 
-    override fun getChildView(): View {
-        binding = OssFragmentMainBinding.inflate(layoutInflater)
-        return binding.root
-    }
+
+    override fun getLayoutId() = R.layout.oss_fragment_main
 
     override fun getScreenTitle() = if (Gallery.galleryConfig.galleryLabels.homeTitle.isNotBlank())
         Gallery.galleryConfig.galleryLabels.homeTitle
@@ -97,7 +96,7 @@ open class HomeFragment : BaseFragment() {
         getString(R.string.oss_title_home_screen)
 
     override fun setUpViews() {
-        binding.actionButton.apply {
+        childView.findViewById<AppCompatButton>(R.id.action_button).apply {
             isSelected = false
             setOnClickListener { onActionButtonClicked() }
             text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
@@ -165,7 +164,7 @@ open class HomeFragment : BaseFragment() {
     }
 
     private fun changeActionButtonState(state: Boolean) {
-        binding.actionButton.isSelected = state
+        childView.findViewById<AppCompatButton>(R.id.action_button).isSelected = state
     }
 
     private fun showError(error: String) {
@@ -173,7 +172,8 @@ open class HomeFragment : BaseFragment() {
     }
 
     private fun setUpWithOutTabLayout() {
-        binding.tabLayout.visibility = View.GONE
+        val tabLayout: TableLayout = childView.findViewById(R.id.tabLayout)
+        tabLayout.visibility = View.GONE
         PagerAdapter(
             childFragmentManager,
             listOf(
@@ -183,12 +183,12 @@ open class HomeFragment : BaseFragment() {
                 )
             )
         ).apply {
-            binding.viewPager.adapter = this
+            childView.findViewById<ViewPager>(R.id.viewPager).adapter = this
         }
     }
 
     private fun openPage() {
-        binding.viewPager.apply {
+        childView.findViewById<ViewPager>(R.id.viewPager).apply {
             currentItem = if (defaultPageToOpen is DefaultPage.PhotoPage) {
                 0
             } else {
@@ -202,7 +202,7 @@ open class HomeFragment : BaseFragment() {
     }
 
     private fun setUpWithTabLayout() {
-        binding.apply {
+        childView.findViewById<ViewPager>(R.id.viewPager).apply {
             PagerAdapter(
                 childFragmentManager, listOf(
                     PhotoGridFragment.getInstance(
@@ -214,8 +214,8 @@ open class HomeFragment : BaseFragment() {
                         getVideosFromArguments()
                     )
                 )
-            ).apply { viewPager.adapter = this }
-            tabLayout.setupWithViewPager(viewPager)
+            ).apply { adapter = this }
+            childView.findViewById<TabLayout>(R.id.tabLayout).setupWithViewPager(this)
         }
     }
 
