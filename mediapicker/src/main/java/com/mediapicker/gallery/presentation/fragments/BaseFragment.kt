@@ -23,9 +23,6 @@ open abstract class BaseFragment : Fragment() {
     }
 
     lateinit var baseBinding: OssFragmentBaseBinding
-//
-//    private lateinit var _binding: VB
-//    protected val binding get() = _binding
 
     lateinit var childView: View
 
@@ -60,15 +57,12 @@ open abstract class BaseFragment : Fragment() {
         return baseBinding.root
     }
 
-//    abstract fun getChildView(): View
-
     @LayoutRes
     abstract fun getLayoutId(): Int
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setToolbar()
-//        setupBinding()
         initViewModels()
         setUpViews()
     }
