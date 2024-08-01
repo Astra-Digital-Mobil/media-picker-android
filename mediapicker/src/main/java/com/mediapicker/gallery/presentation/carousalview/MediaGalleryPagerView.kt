@@ -18,7 +18,6 @@ import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
 import com.github.chrisbanes.photoview.PhotoView
 import com.github.chrisbanes.photoview.PhotoViewAttacher
-import com.mediapicker.gallery.R
 import com.mediapicker.gallery.databinding.OssMediaGalleryPagerViewBinding
 import com.mediapicker.gallery.domain.entity.MediaGalleryEntity
 import java.io.ByteArrayOutputStream
@@ -37,7 +36,8 @@ open class MediaGalleryPagerView@JvmOverloads constructor(
     private var pinchPanZoomEnabled = false
     private var isGallery = false
     private var mediaChangeListener: MediaChangeListener? = null
-    private lateinit var binding: OssMediaGalleryPagerViewBinding
+    private var _binding: OssMediaGalleryPagerViewBinding? = null
+    private val binding get() = _binding!!
 
     private val pageChangeListener: ViewPager.OnPageChangeListener = object :
         ViewPager.OnPageChangeListener {
@@ -318,7 +318,7 @@ open class MediaGalleryPagerView@JvmOverloads constructor(
     }
 
     init {
-        binding = OssMediaGalleryPagerViewBinding.inflate(LayoutInflater.from(context), this)
+        _binding = OssMediaGalleryPagerViewBinding.inflate(LayoutInflater.from(context), this)
 
         adapter = ImagePageAdapter()
         binding.itemImages.addOnPageChangeListener(pageChangeListener)

@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
-import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import com.mediapicker.gallery.R
 import com.mediapicker.gallery.databinding.OssFragmentBaseBinding
@@ -22,7 +21,8 @@ open abstract class BaseFragment : Fragment() {
         const val EXTRA_DEFAULT_PAGE = "extra_default_page"
     }
 
-    lateinit var baseBinding: OssFragmentBaseBinding
+    private var _baseBinding: OssFragmentBaseBinding? = null
+    val baseBinding get() = _baseBinding!!
 
     lateinit var childView: View
 
@@ -51,7 +51,7 @@ open abstract class BaseFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        baseBinding = OssFragmentBaseBinding.inflate(layoutInflater, container, false)
+        _baseBinding = OssFragmentBaseBinding.inflate(layoutInflater, container, false)
         childView = inflater.inflate(getLayoutId(),null)
         baseBinding.baseContainer.addView(childView)
         return baseBinding.root

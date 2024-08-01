@@ -9,13 +9,19 @@ import com.mediapicker.gallery.presentation.fragments.BaseFragment
 
 abstract class BaseFragmentActivity : AppCompatActivity() {
 
-    private lateinit var binding: OssBaseFragmentActivityBinding
+    private var _binding: OssBaseFragmentActivityBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = OssBaseFragmentActivityBinding.inflate(layoutInflater)
+        _binding = OssBaseFragmentActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     protected fun setFragment(fragment: BaseFragment, addToBackStack: Boolean = true) {

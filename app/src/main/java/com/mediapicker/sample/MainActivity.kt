@@ -23,14 +23,20 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_VIDEO_CAPTURE: Int = 1000
     private var fragment: HomeFragment? = null
 
-    private lateinit var binding: ActivityMainBinding
+    private var _binding: ActivityMainBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setUpGallery()
         showStepFragment()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     private fun getValidation(): Validation {

@@ -15,7 +15,8 @@ import com.mediapicker.gallery.presentation.carousalview.MediaGalleryPagerView
 class MediaGalleryActivity : AppCompatActivity(), View.OnClickListener,
     MediaGalleryPagerView.MediaChangeListener {
 
-    private lateinit var binding: OssMediaGalleryActivityBinding
+    private var _binding: OssMediaGalleryActivityBinding? = null
+    private val binding get() = _binding!!
 
     private var origin = ""
     private var selectedPhotoIndex = 0
@@ -48,7 +49,7 @@ class MediaGalleryActivity : AppCompatActivity(), View.OnClickListener,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = OssMediaGalleryActivityBinding.inflate(layoutInflater)
+        _binding = OssMediaGalleryActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         if (intent != null) {
@@ -62,6 +63,11 @@ class MediaGalleryActivity : AppCompatActivity(), View.OnClickListener,
         }
         binding.crossButton.setOnClickListener(this)
         loadImagesInGallery(mediaGalleryList)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     private fun loadImagesInGallery(imageList: MutableList<MediaGalleryEntity>) {
