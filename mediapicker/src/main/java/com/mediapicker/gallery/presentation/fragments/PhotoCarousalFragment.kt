@@ -23,8 +23,11 @@ import com.mediapicker.gallery.presentation.carousalview.CarousalActionListener
 import com.mediapicker.gallery.presentation.carousalview.MediaGalleryView
 import com.mediapicker.gallery.presentation.utils.DefaultPage
 import com.mediapicker.gallery.presentation.utils.PermissionRequestWrapper
+import com.mediapicker.gallery.presentation.utils.galleryPermissions
 import com.mediapicker.gallery.presentation.utils.getActivityScopedViewModel
 import com.mediapicker.gallery.presentation.utils.getFragmentScopedViewModel
+import com.mediapicker.gallery.presentation.utils.isAtLeast34Api
+import com.mediapicker.gallery.presentation.utils.isPermissionGranted
 import com.mediapicker.gallery.presentation.viewmodels.BridgeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.HomeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
@@ -64,45 +67,22 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     private lateinit var permissionsRequester: PermissionsRequester
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        permissionsRequester = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            constructPermissionsRequest(
-                permissions = arrayOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.READ_MEDIA_IMAGES,
-                    Manifest.permission.READ_MEDIA_VIDEO
-                ),
-                onPermissionDenied = ::onPermissionDenied,
-                onNeverAskAgain = ::showNeverAskAgainPermission,
-                requiresPermission = ::checkPermissions,
-                onShowRationale = :: onShowRationale
-            )
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU && Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            constructPermissionsRequest(
-                permissions = arrayOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ),
-                onPermissionDenied = ::onPermissionDenied,
-                onNeverAskAgain = ::showNeverAskAgainPermission,
-                requiresPermission = ::checkPermissions,
-                onShowRationale = :: onShowRationale
-            )
-        } else {
-            constructPermissionsRequest(
-                permissions = arrayOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ),
-                onPermissionDenied = ::onPermissionDenied,
-                onNeverAskAgain = ::showNeverAskAgainPermission,
-                requiresPermission = ::checkPermissions,
-                onShowRationale = :: onShowRationale
-            )
-        }
+        permissionsRequester = constructPermissionsRequest(
+            permissions = galleryPermissions(),
+            onPermissionDenied = ::onPermissionDenied,
+            onNeverAskAgain = ::showNeverAskAgainPermission,
+            requiresPermission = ::checkPermissions,
+            onShowRationale = :: onShowRationale
+        )
     }
 
     private fun onShowRationale(permissionRequest: PermissionRequest) {
+        // When partial permission is granted, this method is always called
+        if (isAtLeast34Api() && isPermissionGranted(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)){
+            checkPermissions()
+            return
+        }
+
         Gallery.galleryConfig.galleryCommunicator?.onShowPermissionRationale(PermissionRequestWrapper(permissionRequest))
     }
 
@@ -168,6 +148,11 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     fun onPermissionDenied() {
+        // When partial permission is granted, this method is always called
+        if (isAtLeast34Api() && isPermissionGranted(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)){
+            checkPermissions()
+            return
+        }
         // activity?.supportFragmentManager?.popBackStack()
         Gallery.galleryConfig.galleryCommunicator?.onPermissionDenied()
     }
@@ -181,6 +166,11 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     fun showNeverAskAgainPermission() {
+        // When partial permission is granted, this method is always called
+        if (isAtLeast34Api() && isPermissionGranted(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)){
+            checkPermissions()
+            return
+        }
         //. Toast.makeText(context, R.string.oss_permissions_denied_attach_image, Toast.LENGTH_LONG).show()
         Gallery.galleryConfig.galleryCommunicator?.onNeverAskPermissionAgain()
     }

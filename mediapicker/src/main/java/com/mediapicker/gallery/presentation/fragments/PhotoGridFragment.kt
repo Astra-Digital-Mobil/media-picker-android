@@ -24,7 +24,7 @@ import com.mediapicker.gallery.presentation.viewmodels.LoadPhotoViewModel
 import java.io.Serializable
 
 
-open class PhotoGridFragment : BaseViewPagerItemFragment() {
+open class PhotoGridFragment : BaseViewPagerItemFragment(), MediaRefreshCallback {
 
     private var photoValidationAction: ValidatePhotos = ValidatePhotos()
 
@@ -333,6 +333,10 @@ open class PhotoGridFragment : BaseViewPagerItemFragment() {
 
         galleryItemAdapter.notifyDataSetChanged()
         Gallery.pagerCommunicator?.onPreviewItemsUpdated(listCurrentPhotos)
+    }
+
+    override fun refresh() {
+       loadPhotoViewModel.loadMedia(this)
     }
 
 }

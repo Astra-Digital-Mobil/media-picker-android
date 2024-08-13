@@ -1,10 +1,10 @@
 package com.mediapicker.gallery.presentation.fragments
 
-import android.Manifest
+import android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import androidx.lifecycle.Observer
 import com.google.android.material.snackbar.Snackbar
 import com.mediapicker.gallery.Gallery
@@ -14,8 +14,12 @@ import com.mediapicker.gallery.domain.entity.PhotoFile
 import com.mediapicker.gallery.presentation.activity.GalleryActivity
 import com.mediapicker.gallery.presentation.adapters.PagerAdapter
 import com.mediapicker.gallery.presentation.utils.DefaultPage
+import com.mediapicker.gallery.presentation.utils.galleryPermissions
 import com.mediapicker.gallery.presentation.utils.getActivityScopedViewModel
 import com.mediapicker.gallery.presentation.utils.getFragmentScopedViewModel
+import com.mediapicker.gallery.presentation.utils.isAtLeast34Api
+import com.mediapicker.gallery.presentation.utils.isPermissionGranted
+import com.mediapicker.gallery.presentation.utils.mediaPermission
 import com.mediapicker.gallery.presentation.viewmodels.BridgeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.HomeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
@@ -49,39 +53,13 @@ open class HomeFragment : BaseFragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        permissionsRequester = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            constructPermissionsRequest(
-                permissions = arrayOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.READ_MEDIA_IMAGES,
-                    Manifest.permission.READ_MEDIA_VIDEO
-                ),
-                onPermissionDenied = ::onPermissionDenied,
-                onNeverAskAgain = ::showNeverAskAgainPermission,
-                requiresPermission = ::checkPermissions
-            )
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU && Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            constructPermissionsRequest(
-                permissions = arrayOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ),
-                onPermissionDenied = ::onPermissionDenied,
-                onNeverAskAgain = ::showNeverAskAgainPermission,
-                requiresPermission = ::checkPermissions
-            )
-        } else {
-            constructPermissionsRequest(
-                permissions = arrayOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ),
-                onPermissionDenied = ::onPermissionDenied,
-                onNeverAskAgain = ::showNeverAskAgainPermission,
-                requiresPermission = ::checkPermissions
-            )
-        }
+
+        permissionsRequester =  constructPermissionsRequest(
+            permissions = galleryPermissions(),
+            onPermissionDenied = ::onPermissionDenied,
+            onNeverAskAgain = ::showNeverAskAgainPermission,
+            requiresPermission = ::checkPermissions
+        )
     }
 
 
@@ -99,6 +77,23 @@ open class HomeFragment : BaseFragment() {
             getString(R.string.oss_posting_next)
 
         permissionsRequester.launch()
+
+        requireView().findViewById<Button>(R.id.permission_button_home).setOnClickListener {
+
+            if (isAtLeast34Api()) {
+                constructPermissionsRequest(
+                    permissions = mediaPermission(),
+                    onPermissionDenied = ::refreshData,
+                    onNeverAskAgain = ::refreshData,
+                    requiresPermission = ::refreshData
+                ).launch()
+            }
+
+        }
+    }
+
+    fun refreshData(){
+          childFragmentManager.fragments.filter { it is MediaRefreshCallback }.map { it as MediaRefreshCallback }.forEach { it.refresh() }
     }
 
     fun checkPermissions() {
@@ -129,11 +124,21 @@ open class HomeFragment : BaseFragment() {
     }
 
     fun onPermissionDenied() {
+        // When partial permission is granted, this method is always called
+        if (isAtLeast34Api() && isPermissionGranted(READ_MEDIA_VISUAL_USER_SELECTED)){
+            checkPermissions()
+            return
+        }
         // activity?.supportFragmentManager?.popBackStack()
         Gallery.galleryConfig.galleryCommunicator?.onPermissionDenied()
     }
 
     fun showNeverAskAgainPermission() {
+        // When partial permission is granted, this method is always called
+        if (isAtLeast34Api() && isPermissionGranted(READ_MEDIA_VISUAL_USER_SELECTED)){
+            checkPermissions()
+            return
+        }
         //. Toast.makeText(context, R.string.oss_permissions_denied_attach_image, Toast.LENGTH_LONG).show()
         Gallery.galleryConfig.galleryCommunicator?.onNeverAskPermissionAgain()
     }
