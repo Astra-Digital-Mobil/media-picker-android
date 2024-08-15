@@ -119,8 +119,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     override fun getScreenTitle() = if (Gallery.galleryConfig.galleryLabels.homeTitle.isNotBlank())
         Gallery.galleryConfig.galleryLabels.homeTitle
     else
-        getString(com.mediapicker.gallery.R.string.oss_title_home_screen)
-
+        getString(R.string.oss_title_home_screen)
 
     override fun setUpViews() {
         Gallery.pagerCommunicator = this
@@ -146,8 +145,8 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
         actionButton.text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
             Gallery.galleryConfig.galleryLabels.homeAction
         else
-            getString(com.mediapicker.gallery.R.string.oss_posting_next)
-
+            getString(R.string.oss_posting_next)
+        actionButton.isAllCaps = Gallery.galleryConfig.textAllCaps
 
         baseBinding.customToolbar.apply {
             toolbarTitle.isAllCaps = Gallery.galleryConfig.textAllCaps
@@ -274,22 +273,22 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     private fun setUpWithTabLayout() {
-        childView.findViewById<ViewPager>(R.id.viewPager).apply {
+        viewPager.apply {
             PagerAdapter(
                 childFragmentManager, listOf(
                     PhotoGridFragment.getInstance(
-                        getString(com.mediapicker.gallery.R.string.oss_title_tab_photo),
+                        getString(R.string.oss_title_tab_photo),
                         getPhotosFromArguments()
                     ),
                     VideoGridFragment.getInstance(
-                        getString(com.mediapicker.gallery.R.string.oss_title_tab_video),
+                        getString(R.string.oss_title_tab_video),
                         getVideosFromArguments()
                     )
                 )
             ).apply {
-                childView.findViewById<ViewPager>(R.id.viewPager).adapter = this
+                viewPager.adapter = this
             }
-            childView.findViewById<TabLayout>(R.id.tabLayout).setupWithViewPager(this)
+            tabLayout.setupWithViewPager(viewPager)
         }
     }
 

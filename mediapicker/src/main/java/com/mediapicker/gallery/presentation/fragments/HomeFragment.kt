@@ -49,6 +49,9 @@ open class HomeFragment : BaseFragment() {
     }
 
     private lateinit var permissionsRequester: PermissionsRequester
+    private lateinit var viewPager: ViewPager
+    private lateinit var tabLayout: TabLayout
+    private lateinit var actionButton: AppCompatButton
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -87,7 +90,6 @@ open class HomeFragment : BaseFragment() {
         }
     }
 
-
     override fun getLayoutId() = R.layout.oss_fragment_main
 
     override fun getScreenTitle() = if (Gallery.galleryConfig.galleryLabels.homeTitle.isNotBlank())
@@ -96,7 +98,11 @@ open class HomeFragment : BaseFragment() {
         getString(R.string.oss_title_home_screen)
 
     override fun setUpViews() {
-        childView.findViewById<AppCompatButton>(R.id.action_button).apply {
+        actionButton = childView.findViewById(R.id.action_button)
+        tabLayout = childView.findViewById(R.id.tabLayout)
+        viewPager = childView.findViewById(R.id.viewPager)
+
+        actionButton.apply {
             isSelected = false
             setOnClickListener { onActionButtonClicked() }
             text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
@@ -172,7 +178,6 @@ open class HomeFragment : BaseFragment() {
     }
 
     private fun setUpWithOutTabLayout() {
-        val tabLayout: TableLayout = childView.findViewById(R.id.tabLayout)
         tabLayout.visibility = View.GONE
         PagerAdapter(
             childFragmentManager,
@@ -183,12 +188,12 @@ open class HomeFragment : BaseFragment() {
                 )
             )
         ).apply {
-            childView.findViewById<ViewPager>(R.id.viewPager).adapter = this
+            viewPager.adapter = this
         }
     }
 
     private fun openPage() {
-        childView.findViewById<ViewPager>(R.id.viewPager).apply {
+        viewPager.apply {
             currentItem = if (defaultPageToOpen is DefaultPage.PhotoPage) {
                 0
             } else {
@@ -202,7 +207,7 @@ open class HomeFragment : BaseFragment() {
     }
 
     private fun setUpWithTabLayout() {
-        childView.findViewById<ViewPager>(R.id.viewPager).apply {
+        viewPager.apply {
             PagerAdapter(
                 childFragmentManager, listOf(
                     PhotoGridFragment.getInstance(
@@ -215,7 +220,7 @@ open class HomeFragment : BaseFragment() {
                     )
                 )
             ).apply { adapter = this }
-            childView.findViewById<TabLayout>(R.id.tabLayout).setupWithViewPager(this)
+            tabLayout.setupWithViewPager(this)
         }
     }
 
