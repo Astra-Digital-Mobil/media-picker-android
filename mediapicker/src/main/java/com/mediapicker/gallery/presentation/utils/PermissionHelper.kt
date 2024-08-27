@@ -52,7 +52,6 @@ fun Fragment.galleryPermissions(): Array<String> {
     return permissions.toTypedArray()
 }
 
-
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 fun Fragment.mediaPermission() =
     arrayOf(READ_MEDIA_IMAGES, READ_MEDIA_VIDEO, READ_MEDIA_VISUAL_USER_SELECTED)

@@ -102,7 +102,6 @@ open class HomeFragment : BaseFragment() {
         childView.findViewById<Button>(R.id.action_permission).setOnClickListener {
             onManagePermissionButtonClick()
         }
-        showManagerPermissionUI(true)
     }
 
     private fun checkPermissions() {
