@@ -144,7 +144,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
 
     private fun checkPermissions() {
         if (!isRemoving && isAdded) {
-            showManagerPermissionUI(true)
+            showManagerPermissionUI()
 
             when (homeViewModel.getMediaType()) {
                 GalleryConfig.MediaType.PhotoOnly -> {
@@ -290,15 +290,15 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     fun reloadMedia() {
+        showManagerPermissionUI()
         bridgeViewModel.reloadMedia()
     }
 
-    protected open fun showManagerPermissionUI(visibility: Boolean) {
-        val permissionLayout = childView.findViewById<LinearLayout>(R.id.permission_layout)
-        if(!visibility){
-            permissionLayout.isVisible = visibility
+    protected open fun showManagerPermissionUI() {
+        if (isRemoving || !isAdded) {
             return
         }
+        val permissionLayout = childView.findViewById<LinearLayout>(R.id.permission_layout)
         if (isAtLeast34Api()
             && !(isPermissionGranted(Manifest.permission.READ_MEDIA_IMAGES)
                     && isPermissionGranted(Manifest.permission.READ_MEDIA_VIDEO))
