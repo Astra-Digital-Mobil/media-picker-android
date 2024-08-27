@@ -5,15 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
-    <Button
-        android:id="@+id/permission_button_home"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:text="ask permission again"/>
-
+    <include layout="@layout/layout_manage_permission" />
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/viewPager"

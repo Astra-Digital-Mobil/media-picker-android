@@ -1,12 +1,13 @@
 package com.mediapicker.gallery.presentation.fragments
 
-import android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+import android.Manifest
 import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.TableLayout
+import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.snackbar.Snackbar
@@ -18,18 +19,19 @@ import com.mediapicker.gallery.domain.entity.PhotoFile
 import com.mediapicker.gallery.presentation.activity.GalleryActivity
 import com.mediapicker.gallery.presentation.adapters.PagerAdapter
 import com.mediapicker.gallery.presentation.utils.DefaultPage
+import com.mediapicker.gallery.presentation.utils.MediaPermissionRequest
+import com.mediapicker.gallery.presentation.utils.constructGalleryPermissionsRequest
+import com.mediapicker.gallery.presentation.utils.constructMediaPermissionsRequest
 import com.mediapicker.gallery.presentation.utils.galleryPermissions
 import com.mediapicker.gallery.presentation.utils.getActivityScopedViewModel
 import com.mediapicker.gallery.presentation.utils.getFragmentScopedViewModel
 import com.mediapicker.gallery.presentation.utils.isAtLeast34Api
 import com.mediapicker.gallery.presentation.utils.isPermissionGranted
-import com.mediapicker.gallery.presentation.utils.mediaPermission
 import com.mediapicker.gallery.presentation.viewmodels.BridgeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.HomeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
 import com.mediapicker.gallery.utils.SnackbarUtils
 import permissions.dispatcher.ktx.PermissionsRequester
-import permissions.dispatcher.ktx.constructPermissionsRequest
 import java.io.Serializable
 
 open class HomeFragment : BaseFragment() {
@@ -52,7 +54,8 @@ open class HomeFragment : BaseFragment() {
         getPageFromArguments()
     }
 
-    private lateinit var permissionsRequester: PermissionsRequester
+    private lateinit var galleryPermissionsRequester: PermissionsRequester
+    private lateinit var mediaPermissionRequest: MediaPermissionRequest
     private lateinit var viewPager: ViewPager
     private lateinit var tabLayout: TabLayout
     private lateinit var actionButton: AppCompatButton
@@ -60,11 +63,16 @@ open class HomeFragment : BaseFragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        permissionsRequester =  constructPermissionsRequest(
+        galleryPermissionsRequester =  constructGalleryPermissionsRequest(
             permissions = galleryPermissions(),
             onPermissionDenied = ::onPermissionDenied,
             onNeverAskAgain = ::showNeverAskAgainPermission,
             requiresPermission = ::checkPermissions
+        )
+
+        mediaPermissionRequest = constructMediaPermissionsRequest(
+            onPermissionDenied = ::onPermissionDenied,
+            onPermissionGranted = ::reloadMedia
         )
     }
 
@@ -89,27 +97,17 @@ open class HomeFragment : BaseFragment() {
                 getString(R.string.oss_posting_next)
         }
 
-        permissionsRequester.launch()
+        galleryPermissionsRequester.launch()
 
-        requireView().findViewById<Button>(R.id.permission_button_home).setOnClickListener {
-
-            if (isAtLeast34Api()) {
-                constructPermissionsRequest(
-                    permissions = mediaPermission(),
-                    onPermissionDenied = ::refreshData,
-                    onNeverAskAgain = ::refreshData,
-                    requiresPermission = ::refreshData
-                ).launch()
-            }
-
+        childView.findViewById<Button>(R.id.action_permission).setOnClickListener {
+            onManagePermissionButtonClick()
         }
+        showManagerPermissionUI(true)
     }
 
-    fun refreshData(){
-          childFragmentManager.fragments.filter { it is MediaRefreshCallback }.map { it as MediaRefreshCallback }.forEach { it.refresh() }
-    }
+    private fun checkPermissions() {
+        showManagerPermissionUI(true)
 
-    fun checkPermissions() {
         when (homeViewModel.getMediaType()) {
             GalleryConfig.MediaType.PhotoOnly -> {
                 setUpWithOutTabLayout()
@@ -135,21 +133,11 @@ open class HomeFragment : BaseFragment() {
     }
 
     fun onPermissionDenied() {
-        // When partial permission is granted, this method is always called
-        if (isAtLeast34Api() && isPermissionGranted(READ_MEDIA_VISUAL_USER_SELECTED)){
-            checkPermissions()
-            return
-        }
         // activity?.supportFragmentManager?.popBackStack()
         Gallery.galleryConfig.galleryCommunicator?.onPermissionDenied()
     }
 
     fun showNeverAskAgainPermission() {
-        // When partial permission is granted, this method is always called
-        if (isAtLeast34Api() && isPermissionGranted(READ_MEDIA_VISUAL_USER_SELECTED)){
-            checkPermissions()
-            return
-        }
         //. Toast.makeText(context, R.string.oss_permissions_denied_attach_image, Toast.LENGTH_LONG).show()
         Gallery.galleryConfig.galleryCommunicator?.onNeverAskPermissionAgain()
     }
@@ -242,6 +230,26 @@ open class HomeFragment : BaseFragment() {
 
     fun reloadMedia() {
         bridgeViewModel.reloadMedia()
+    }
+
+    protected open fun showManagerPermissionUI(visibility: Boolean) {
+        val permissionLayout = childView.findViewById<LinearLayout>(R.id.permission_layout)
+        if(!visibility){
+            permissionLayout.isVisible = visibility
+            return
+        }
+        if (isAtLeast34Api()
+            && !(isPermissionGranted(Manifest.permission.READ_MEDIA_IMAGES)
+                    && isPermissionGranted(Manifest.permission.READ_MEDIA_VIDEO))
+        ) {
+            permissionLayout.isVisible = true
+        }else{
+            permissionLayout.isVisible = false
+        }
+    }
+
+    private fun onManagePermissionButtonClick() {
+        mediaPermissionRequest.launch()
     }
 
     companion object {

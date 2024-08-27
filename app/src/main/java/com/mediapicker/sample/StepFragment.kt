@@ -26,5 +26,10 @@ class StepFragment : Fragment() {
                 (activity as MainActivity).jumpToGallery()
             }
         }
+        binding.actionPhotoCarousalButton.setOnClickListener {
+            if (activity is MainActivity) {
+                (activity as MainActivity).jumpToPhotoCarousal()
+            }
+        }
     }
 }

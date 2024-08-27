@@ -8,9 +8,16 @@ import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import permissions.dispatcher.PermissionRequest
+
+import permissions.dispatcher.ktx.PermissionsRequester
+
+import permissions.dispatcher.ktx.constructPermissionsRequest
 
 
 fun Fragment.galleryPermissions(): Array<String> {
@@ -55,4 +62,99 @@ fun isAtLeast34Api() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_
 fun Fragment.isPermissionGranted(name: String) = ContextCompat.checkSelfPermission(
     requireContext(), name
 ) == PackageManager.PERMISSION_GRANTED
+
+fun Fragment.constructGalleryPermissionsRequest(
+    vararg permissions: String,
+    onShowRationale: ShowRationaleFun? = null,
+    onPermissionDenied: Fun? = null,
+    onNeverAskAgain: Fun? = null,
+    requiresPermission: Fun
+): PermissionsRequester = constructPermissionsRequest(
+    permissions = permissions,
+    onShowRationale = ShowRationaleFunWrapper(onShowRationale, requiresPermission),
+    onPermissionDenied = FunWrapper(onPermissionDenied, requiresPermission),
+    onNeverAskAgain = FunWrapper(onNeverAskAgain, requiresPermission),
+    requiresPermission = requiresPermission,
+)
+
+private fun Fragment.FunWrapper(action: Fun?, requiresPermission: Fun): Fun = {
+    if (isAtLeast34Api() && hasMediaPermission()) {
+        requiresPermission.invoke()
+    } else {
+        action?.invoke()
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+private fun Fragment.hasMediaPermission() =
+    ((isPermissionGranted(READ_MEDIA_IMAGES)
+            && isPermissionGranted(READ_MEDIA_VIDEO))
+            || isPermissionGranted(READ_MEDIA_VISUAL_USER_SELECTED))
+
+private fun Fragment.ShowRationaleFunWrapper(
+    action: ShowRationaleFun?,
+    requiresPermission: Fun
+): ShowRationaleFun {
+    return { permissions ->
+        if (isAtLeast34Api() && hasMediaPermission()) {
+            requiresPermission.invoke()
+        } else {
+            action?.invoke(permissions)
+        }
+    }
+}
+
+
+interface MediaPermissionRequest{
+    fun launch()
+}
+
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+class AtLeastApi34MediaPermissionRequest (
+    private val fragment: Fragment,
+    private val permissions: Array<String>,
+    private val onPermissionDenied: Fun? = null,
+    private val requiresPermission: Fun
+) : MediaPermissionRequest{
+    private val requestPermissionLauncher =
+        fragment.registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) {
+            if (fragment.hasMediaPermission()) {
+                requiresPermission()
+            } else {
+                onPermissionDenied?.invoke()
+            }
+
+        }
+
+    override fun launch() {
+        requestPermissionLauncher.launch(permissions)
+    }
+}
+
+class BelowApi34MediaPermissionRequest : MediaPermissionRequest {
+    override fun launch() {}
+}
+
+fun Fragment.constructMediaPermissionsRequest(
+    onPermissionDenied: Fun? = null,
+    onPermissionGranted: Fun
+): MediaPermissionRequest {
+    return if (isAtLeast34Api()) {
+        AtLeastApi34MediaPermissionRequest(
+            this,
+            permissions = mediaPermission(),
+            onPermissionDenied,
+            onPermissionGranted
+        )
+    } else {
+        BelowApi34MediaPermissionRequest()
+    }
+}
+
+internal typealias Fun = () -> Unit
+internal typealias ShowRationaleFun = (PermissionRequest) -> Unit
+
+
 

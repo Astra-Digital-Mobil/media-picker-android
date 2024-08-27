@@ -3,11 +3,13 @@ package com.mediapicker.gallery.presentation.fragments
 import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.appbar.AppBarLayout
@@ -26,7 +28,10 @@ import com.mediapicker.gallery.presentation.adapters.PagerAdapter
 import com.mediapicker.gallery.presentation.carousalview.CarousalActionListener
 import com.mediapicker.gallery.presentation.carousalview.MediaGalleryView
 import com.mediapicker.gallery.presentation.utils.DefaultPage
+import com.mediapicker.gallery.presentation.utils.MediaPermissionRequest
 import com.mediapicker.gallery.presentation.utils.PermissionRequestWrapper
+import com.mediapicker.gallery.presentation.utils.constructGalleryPermissionsRequest
+import com.mediapicker.gallery.presentation.utils.constructMediaPermissionsRequest
 import com.mediapicker.gallery.presentation.utils.galleryPermissions
 import com.mediapicker.gallery.presentation.utils.getActivityScopedViewModel
 import com.mediapicker.gallery.presentation.utils.getFragmentScopedViewModel
@@ -38,7 +43,6 @@ import com.mediapicker.gallery.presentation.viewmodels.VideoFile
 import com.mediapicker.gallery.utils.SnackbarUtils
 import permissions.dispatcher.PermissionRequest
 import permissions.dispatcher.ktx.PermissionsRequester
-import permissions.dispatcher.ktx.constructPermissionsRequest
 import java.io.Serializable
 
 
@@ -70,25 +74,25 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
         getPageFromArguments()
     }
 
-    private lateinit var permissionsRequester: PermissionsRequester
+    private lateinit var galleryPermissionsRequester: PermissionsRequester
+    private lateinit var mediaPermissionRequest: MediaPermissionRequest
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        permissionsRequester = constructPermissionsRequest(
+        galleryPermissionsRequester = constructGalleryPermissionsRequest(
             permissions = galleryPermissions(),
             onPermissionDenied = ::onPermissionDenied,
             onNeverAskAgain = ::showNeverAskAgainPermission,
             requiresPermission = ::checkPermissions,
             onShowRationale = :: onShowRationale
         )
+
+        mediaPermissionRequest = constructMediaPermissionsRequest(
+            onPermissionDenied = ::onPermissionDenied,
+            onPermissionGranted = ::reloadMedia
+        )
     }
 
     private fun onShowRationale(permissionRequest: PermissionRequest) {
-        // When partial permission is granted, this method is always called
-        if (isAtLeast34Api() && isPermissionGranted(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)){
-            checkPermissions()
-            return
-        }
-
         Gallery.galleryConfig.galleryCommunicator?.onShowPermissionRationale(PermissionRequestWrapper(permissionRequest))
     }
 
@@ -131,13 +135,17 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
             toolbarTitle.gravity = Gallery.galleryConfig.galleryLabels.titleAlignment
             toolbarBackButton.setImageResource(Gallery.galleryConfig.galleryUiConfig.backIcon)
         }
+        childView.findViewById<Button>(R.id.action_permission).setOnClickListener {
+            onManagePermissionButtonClick()
+        }
 
-        permissionsRequester.launch()
+        galleryPermissionsRequester.launch()
     }
 
-
-    fun checkPermissions() {
+    private fun checkPermissions() {
         if (!isRemoving && isAdded) {
+            showManagerPermissionUI(true)
+
             when (homeViewModel.getMediaType()) {
                 GalleryConfig.MediaType.PhotoOnly -> {
                     setUpWithOutTabLayout()
@@ -164,11 +172,6 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     fun onPermissionDenied() {
-        // When partial permission is granted, this method is always called
-        if (isAtLeast34Api() && isPermissionGranted(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)){
-            checkPermissions()
-            return
-        }
         // activity?.supportFragmentManager?.popBackStack()
         Gallery.galleryConfig.galleryCommunicator?.onPermissionDenied()
     }
@@ -182,11 +185,6 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     fun showNeverAskAgainPermission() {
-        // When partial permission is granted, this method is always called
-        if (isAtLeast34Api() && isPermissionGranted(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)){
-            checkPermissions()
-            return
-        }
         //. Toast.makeText(context, R.string.oss_permissions_denied_attach_image, Toast.LENGTH_LONG).show()
         Gallery.galleryConfig.galleryCommunicator?.onNeverAskPermissionAgain()
     }
@@ -293,6 +291,26 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
 
     fun reloadMedia() {
         bridgeViewModel.reloadMedia()
+    }
+
+    protected open fun showManagerPermissionUI(visibility: Boolean) {
+        val permissionLayout = childView.findViewById<LinearLayout>(R.id.permission_layout)
+        if(!visibility){
+            permissionLayout.isVisible = visibility
+            return
+        }
+        if (isAtLeast34Api()
+            && !(isPermissionGranted(Manifest.permission.READ_MEDIA_IMAGES)
+                    && isPermissionGranted(Manifest.permission.READ_MEDIA_VIDEO))
+        ) {
+            permissionLayout.isVisible = true
+        }else{
+            permissionLayout.isVisible = false
+        }
+    }
+
+    private fun onManagePermissionButtonClick() {
+        mediaPermissionRequest.launch()
     }
 
     companion object {

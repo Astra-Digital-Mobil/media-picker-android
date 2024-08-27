@@ -15,5 +15,7 @@
     <string name="oss_label_record_video">Record Video</string>
     <string name="oss_permissions_denied_attach_image">We need this permission to send an image</string>
 
+    <string name="oss_label_photos_access">You\'ve given olx access to select number of photos</string>
+    <string name="oss_label_manage">Manage</string>
 
 </resources>

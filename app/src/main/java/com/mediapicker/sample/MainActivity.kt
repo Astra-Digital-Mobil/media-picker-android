@@ -10,7 +10,9 @@ import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.GalleryConfig
 import com.mediapicker.gallery.domain.contract.IGalleryCommunicator
 import com.mediapicker.gallery.domain.entity.*
+import com.mediapicker.gallery.presentation.fragments.BaseFragment
 import com.mediapicker.gallery.presentation.fragments.HomeFragment
+import com.mediapicker.gallery.presentation.fragments.PhotoCarousalFragment
 import com.mediapicker.gallery.presentation.utils.DefaultPage
 import com.mediapicker.gallery.presentation.utils.PermissionRequestWrapper
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
@@ -21,7 +23,7 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
 
     private val REQUEST_VIDEO_CAPTURE: Int = 1000
-    private var fragment: HomeFragment? = null
+    private var fragment: BaseFragment? = null
 
     private var _binding: ActivityMainBinding? = null
     private val binding get() = _binding!!
@@ -77,11 +79,36 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun attachPhotoCarousalFragment() {
+        try {
+            val transaction = supportFragmentManager.beginTransaction()
+            val  photos =  SelectedItemHolder.listOfSelectedPhotos
+            fragment = PhotoCarousalFragment.getInstance(photos,
+                SelectedItemHolder.listOfSelectedVideos,
+                defaultPageType = DefaultPage.PhotoPage
+            )
+            fragment?.let {
+                transaction.replace(binding.container.id, it, it::class.java.simpleName)
+                transaction.addToBackStack(it.javaClass.name)
+                transaction.commitAllowingStateLoss()
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
+    }
+
     fun jumpToGallery() {
        /* startActivity(GalleryActivity.getGalleryActivityIntent(SelectedItemHolder.listOfSelectedPhotos,
             SelectedItemHolder.listOfSelectedVideos,
             defaultPageType = DefaultPage.PhotoPage,context = baseContext))*/
         attachGalleryFragment()
+    }
+
+    fun jumpToPhotoCarousal() {
+        /* startActivity(GalleryActivity.getGalleryActivityIntent(SelectedItemHolder.listOfSelectedPhotos,
+             SelectedItemHolder.listOfSelectedVideos,
+             defaultPageType = DefaultPage.PhotoPage,context = baseContext))*/
+        attachPhotoCarousalFragment()
     }
 
     private fun showStepFragment() {
@@ -162,7 +189,7 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
             val videoUri: Uri? = intent.data
             Toast.makeText(baseContext, "Recorded ", Toast.LENGTH_LONG).show()
-            fragment?.reloadMedia()
+            (fragment as? HomeFragment)?.reloadMedia()
         }
     }
 
