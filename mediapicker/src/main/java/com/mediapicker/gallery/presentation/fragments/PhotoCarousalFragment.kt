@@ -7,8 +7,12 @@ import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
+import androidx.appcompat.widget.AppCompatButton
 import androidx.lifecycle.Observer
+import androidx.viewpager.widget.ViewPager
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
 import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.GalleryConfig
 import com.mediapicker.gallery.R
@@ -32,19 +36,21 @@ import com.mediapicker.gallery.presentation.viewmodels.BridgeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.HomeViewModel
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
 import com.mediapicker.gallery.utils.SnackbarUtils
-import kotlinx.android.synthetic.main.oss_custom_toolbar.*
-import kotlinx.android.synthetic.main.oss_custom_toolbar.view.toolbarBackButton
-import kotlinx.android.synthetic.main.oss_fragment_carousal.*
 import permissions.dispatcher.PermissionRequest
 import permissions.dispatcher.ktx.PermissionsRequester
 import permissions.dispatcher.ktx.constructPermissionsRequest
 import java.io.Serializable
-import java.util.*
+
 
 open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     MediaGalleryView.OnGalleryItemClickListener {
 
     private val PHOTO_PREVIEW = 43475
+
+    private lateinit var mediaGalleryView: MediaGalleryView
+    private lateinit var actionButton: AppCompatButton
+    private lateinit var viewPager: ViewPager
+    private lateinit var tabLayout: TabLayout
 
     private val homeViewModel: HomeViewModel by lazy {
         getFragmentScopedViewModel { HomeViewModel(Gallery.galleryConfig) }
@@ -96,9 +102,16 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     override fun setUpViews() {
         Gallery.pagerCommunicator = this
 
+        mediaGalleryView = childView.findViewById(R.id.mediaGalleryView)
+        actionButton = childView.findViewById(R.id.action_button)
+        tabLayout = childView.findViewById(R.id.tabLayout)
+        viewPager = childView.findViewById(R.id.viewPager)
+
+        val mediaGalleryViewContainer: AppBarLayout =
+            childView.findViewById(R.id.mediaGalleryViewContainer)
         if (Gallery.galleryConfig.showPreviewCarousal.showCarousal) {
             mediaGalleryViewContainer.visibility = View.VISIBLE
-            mediaGalleryView.setOnGalleryClickListener(this)
+            mediaGalleryView.setOnGalleryClickListener(this@PhotoCarousalFragment)
             if (Gallery.galleryConfig.showPreviewCarousal.imageId != 0) {
                 mediaGalleryView.updateDefaultPhoto(Gallery.galleryConfig.showPreviewCarousal.imageId)
             }
@@ -107,20 +120,21 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
             }
         }
 
-        toolbarTitle.isAllCaps = Gallery.galleryConfig.textAllCaps
-        action_button.isAllCaps = Gallery.galleryConfig.textAllCaps
-
-        toolbarTitle.gravity = Gallery.galleryConfig.galleryLabels.titleAlignment
-
-        toolbarBackButton.toolbarBackButton.setImageResource(Gallery.galleryConfig.galleryUiConfig.backIcon)
-
-        action_button.text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
+        actionButton.text = if (Gallery.galleryConfig.galleryLabels.homeAction.isNotBlank())
             Gallery.galleryConfig.galleryLabels.homeAction
         else
             getString(R.string.oss_posting_next)
+        actionButton.isAllCaps = Gallery.galleryConfig.textAllCaps
+
+        baseBinding.customToolbar.apply {
+            toolbarTitle.isAllCaps = Gallery.galleryConfig.textAllCaps
+            toolbarTitle.gravity = Gallery.galleryConfig.galleryLabels.titleAlignment
+            toolbarBackButton.setImageResource(Gallery.galleryConfig.galleryUiConfig.backIcon)
+        }
 
         permissionsRequester.launch()
     }
+
 
     fun checkPermissions() {
         if (!isRemoving && isAdded) {
@@ -142,8 +156,10 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 }
             }
             openPage()
-            action_button.isSelected = false
-            action_button.setOnClickListener { onActionButtonClicked() }
+            childView.findViewById<AppCompatButton>(R.id.action_button).apply {
+                isSelected = false
+                setOnClickListener { onActionButtonClicked() }
+            }
         }
     }
 
@@ -191,7 +207,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     override fun setHomeAsUp() = true
 
     fun setActionButtonLabel(label: String) {
-        action_button.text = label
+        actionButton.text = label
     }
 
     fun setCarousalActionListener(carousalActionListener: CarousalActionListener?) {
@@ -205,7 +221,7 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
 
     private fun changeActionButtonState(state: Boolean) {
         Gallery.galleryConfig.galleryCommunicator?.onStepValidate(state)
-        action_button.isSelected = state
+        actionButton.isSelected = state
     }
 
     private fun showError(error: String) {
@@ -214,12 +230,16 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
 
     private fun setUpWithOutTabLayout() {
         tabLayout.visibility = View.GONE
-        mediaGalleryView.setImagesForPager(convertPhotoFileToMediaGallery(getPhotosFromArguments()))
+        mediaGalleryView.setImagesForPager(
+            convertPhotoFileToMediaGallery(
+                getPhotosFromArguments()
+            )
+        )
         PagerAdapter(
             childFragmentManager,
             listOf(
                 PhotoGridFragment.getInstance(
-                    getString(R.string.oss_title_tab_photo),
+                    getString(com.mediapicker.gallery.R.string.oss_title_tab_photo),
                     getPhotosFromArguments()
                 )
             )
@@ -241,19 +261,23 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
     }
 
     private fun setUpWithTabLayout() {
-        PagerAdapter(
-            childFragmentManager, listOf(
-                PhotoGridFragment.getInstance(
-                    getString(R.string.oss_title_tab_photo),
-                    getPhotosFromArguments()
-                ),
-                VideoGridFragment.getInstance(
-                    getString(R.string.oss_title_tab_video),
-                    getVideosFromArguments()
+        viewPager.apply {
+            PagerAdapter(
+                childFragmentManager, listOf(
+                    PhotoGridFragment.getInstance(
+                        getString(R.string.oss_title_tab_photo),
+                        getPhotosFromArguments()
+                    ),
+                    VideoGridFragment.getInstance(
+                        getString(R.string.oss_title_tab_video),
+                        getVideosFromArguments()
+                    )
                 )
-            )
-        ).apply { viewPager.adapter = this }
-        tabLayout.setupWithViewPager(viewPager)
+            ).apply {
+                viewPager.adapter = this
+            }
+            tabLayout.setupWithViewPager(viewPager)
+        }
     }
 
 
@@ -325,12 +349,19 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
 
     override fun onPreviewItemsUpdated(listOfSelectedPhotos: List<PhotoFile>) {
         if (Gallery.galleryConfig.showPreviewCarousal.addImage) {
-            mediaGalleryView.setImagesForPager(convertPhotoFileToMediaGallery(listOfSelectedPhotos))
+            mediaGalleryView.setImagesForPager(
+                convertPhotoFileToMediaGallery(
+                    listOfSelectedPhotos
+                )
+            )
         }
     }
 
     override fun onGalleryItemClick(mediaIndex: Int) {
-        Gallery.carousalActionListener?.onGalleryImagePreview(mediaIndex, bridgeViewModel.getSelectedPhotos().size)
+        Gallery.carousalActionListener?.onGalleryImagePreview(
+            mediaIndex,
+            bridgeViewModel.getSelectedPhotos().size
+        )
         MediaGalleryActivity.startActivityForResult(
             this, convertPhotoFileToMediaGallery(
                 bridgeViewModel.getSelectedPhotos()
@@ -346,7 +377,10 @@ open class PhotoCarousalFragment : BaseFragment(), GalleryPagerCommunicator,
                 val bundle = data.extras
                 index = bundle!!.getInt("gallery_media_index", 0)
             }
-            Gallery.carousalActionListener?.onGalleryImagePreviewClosed(index, bridgeViewModel.getSelectedPhotos().size)
+            Gallery.carousalActionListener?.onGalleryImagePreviewClosed(
+                index,
+                bridgeViewModel.getSelectedPhotos().size
+            )
             mediaGalleryView.setSelectedPhoto(index)
         }
     }
