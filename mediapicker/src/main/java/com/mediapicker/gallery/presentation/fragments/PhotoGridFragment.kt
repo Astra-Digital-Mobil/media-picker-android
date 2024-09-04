@@ -24,7 +24,7 @@ import com.mediapicker.gallery.presentation.viewmodels.LoadPhotoViewModel
 import java.io.Serializable
 
 
-open class PhotoGridFragment : BaseViewPagerItemFragment() {
+open class PhotoGridFragment : BaseViewPagerItemFragment(){
 
     private var photoValidationAction: ValidatePhotos = ValidatePhotos()
 
@@ -334,7 +334,6 @@ open class PhotoGridFragment : BaseViewPagerItemFragment() {
         galleryItemAdapter.notifyDataSetChanged()
         Gallery.pagerCommunicator?.onPreviewItemsUpdated(listCurrentPhotos)
     }
-
 }
 
 fun LinkedHashSet<PhotoFile>.removePhoto(photo: PhotoFile) {

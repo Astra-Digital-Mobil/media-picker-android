@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="oss_label_photos_access">Anda telah memberi OLX akses ke foto dan video pilihan Anda</string>
+    <string name="oss_label_manage">Kelola</string>
+</resources>

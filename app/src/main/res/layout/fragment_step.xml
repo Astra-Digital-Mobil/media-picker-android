@@ -11,4 +11,10 @@
         android:text="Click Me"
         android:layout_height="wrap_content" />
 
+    <Button
+        android:id="@+id/actionPhotoCarousalButton"
+        android:layout_width="wrap_content"
+        android:text="Jump Photo Carousal Fragment"
+        android:layout_height="wrap_content" />
+
 </LinearLayout>
