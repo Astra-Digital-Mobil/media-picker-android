@@ -8,6 +8,8 @@ import android.webkit.MimeTypeMap
 import com.mediapicker.gallery.domain.entity.PhotoAlbum
 import com.mediapicker.gallery.domain.entity.PhotoFile
 import com.mediapicker.gallery.domain.repositories.GalleryRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 open class GalleryService(private val applicationContext: Context) : GalleryRepository {
 
@@ -18,41 +20,45 @@ open class GalleryService(private val applicationContext: Context) : GalleryRepo
 
 
     @Throws(IllegalArgumentException::class)
-    override fun getAlbums(): HashSet<PhotoAlbum> {
-        return queryMedia()
+    override suspend fun getAlbums(): HashSet<PhotoAlbum> = withContext(Dispatchers.IO) {
+        queryMedia()
     }
 
 
     private fun queryMedia(): HashSet<PhotoAlbum> {
         val mutableListOfFolders = hashSetOf<PhotoAlbum>()
-        val selection = MediaStore.Images.Media.MIME_TYPE + "!=?"
-        val mimeTypeGif = MimeTypeMap.getSingleton().getMimeTypeFromExtension("gif")
-        val selectionTypeGifArgs = arrayOf(mimeTypeGif)
-        val cursor = MediaStore.Images.Media.query(
-            applicationContext.contentResolver,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, selection, selectionTypeGifArgs,
-            MediaStore.Images.Media.DATE_ADDED + " DESC"
+
+        val selection = "${MediaStore.Images.Media.MIME_TYPE} != ?"
+        val selectionArgs = arrayOf(MimeTypeMap.getSingleton().getMimeTypeFromExtension("gif"))
+
+        val cursor = applicationContext.contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            null,
+            selection,
+            selectionArgs,
+            "${MediaStore.Images.Media.DATE_ADDED} DESC"
         )
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                val album = getAlbumEntry(cursor)
-                album?.let { item ->
-                    val photo = getPhoto(cursor)
-                    if (mutableListOfFolders.contains(item)) {
-                        mutableListOfFolders.forEach {
-                            if (it == item) {
-                                it.addEntryToAlbum(photo)
-                            }
+
+        cursor?.use { value ->
+            if (value.moveToFirst()) {
+                do {
+                    val album = getAlbumEntry(value)
+                    album?.let { item ->
+                        val photo = getPhoto(value)
+
+                        val existingAlbum = mutableListOfFolders.find { it == item }
+                        existingAlbum?.addEntryToAlbum(photo) ?: run {
+                            item.addEntryToAlbum(photo)
+                            mutableListOfFolders.add(item)
                         }
-                    } else {
-                        item.addEntryToAlbum(photo)
-                        mutableListOfFolders.add(item)
                     }
-                }
-            } while (cursor.moveToNext())
+                } while (value.moveToNext())
+            }
         }
+
         return mutableListOfFolders
     }
+
 
     private fun getAlbumEntry(cursor: Cursor): PhotoAlbum? {
         val albumIdIndex = cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_ID)
