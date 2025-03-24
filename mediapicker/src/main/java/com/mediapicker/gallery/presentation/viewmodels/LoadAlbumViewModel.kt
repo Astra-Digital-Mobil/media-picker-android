@@ -2,8 +2,10 @@ package com.mediapicker.gallery.presentation.viewmodels
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.mediapicker.gallery.domain.entity.PhotoAlbum
 import com.mediapicker.gallery.domain.repositories.GalleryRepository
+import kotlinx.coroutines.launch
 import java.util.*
 
 class LoadAlbumViewModel constructor(private val galleryRepository: GalleryRepository) : ViewModel(){
@@ -13,7 +15,9 @@ class LoadAlbumViewModel constructor(private val galleryRepository: GalleryRepos
     fun getAlbums() = albumLiveData
 
     fun loadAlbums(){
-        albumLiveData.postValue(galleryRepository.getAlbums())
+        viewModelScope.launch {
+            albumLiveData.postValue(galleryRepository.getAlbums())
+        }
     }
 
 }
