@@ -4,5 +4,5 @@ import com.mediapicker.gallery.domain.entity.PhotoAlbum
 
 interface GalleryRepository {
 
-    fun getAlbums(): HashSet<PhotoAlbum>
+   fun getAlbums(): HashSet<PhotoAlbum>
 }
