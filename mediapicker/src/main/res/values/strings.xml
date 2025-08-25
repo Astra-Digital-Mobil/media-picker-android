@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="oss_activity_gallery_no_images">No images.</string>
-    <string name="oss_posting_next">Next</string>
+    <string name="oss_activity_gallery_no_images" translatable="false">No images.</string>
+    <string name="oss_posting_next" translatable="false">Next</string>
 
     <!--Screen titles -->
-    <string name="oss_title_home_screen">Upload Your Photos</string>
-    <string name="oss_title_tab_video">Videos</string>
-    <string name="oss_title_tab_photo">Photos</string>
-    <string name="oss_title_folder_fragment">Gallery</string>
+    <string name="oss_title_home_screen" translatable="false">Upload Your Photos</string>
+    <string name="oss_title_tab_video" translatable="false">Videos</string>
+    <string name="oss_title_tab_photo" translatable="false">Photos</string>
+    <string name="oss_title_folder_fragment" translatable="false">Gallery</string>
 
     <!-- Labels -->
-    <string name="oss_label_camera">Take a picture</string>
-    <string name="oss_label_folder">Folders</string>
-    <string name="oss_label_record_video">Record Video</string>
-    <string name="oss_permissions_denied_attach_image">We need this permission to send an image</string>
+    <string name="oss_label_camera" translatable="false">Take a picture</string>
+    <string name="oss_label_folder" translatable="false">Folders</string>
+    <string name="oss_label_record_video" translatable="false">Record Video</string>
+    <string name="oss_permissions_denied_attach_image" translatable="false">We need this permission to send an image</string>
 
     <string name="oss_label_photos_access">You\'ve given olx access to select number of photos</string>
     <string name="oss_label_manage">Manage</string>
