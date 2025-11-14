@@ -11,7 +11,9 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.Observer
 import com.mediapicker.gallery.Gallery
 import com.mediapicker.gallery.R
+import com.mediapicker.gallery.domain.entity.Action
 import com.mediapicker.gallery.domain.entity.PhotoFile
+import com.mediapicker.gallery.domain.entity.Status
 import com.mediapicker.gallery.presentation.activity.FolderViewActivity
 import com.mediapicker.gallery.presentation.adapters.IGalleryItemClickListener
 import com.mediapicker.gallery.presentation.adapters.SelectPhotoImageAdapter
@@ -291,6 +293,8 @@ open class PhotoGridFragment : BaseViewPagerItemFragment(){
             .smallPhotoUrl("")
             .fullPhotoUrl(fullPhotoUrl)
             .photoBackendId(0L)
+            .action(Action.ADD)
+            .status(Status.PENDING)
             .build()
     }
 
