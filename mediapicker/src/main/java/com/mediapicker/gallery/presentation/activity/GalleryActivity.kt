@@ -29,7 +29,15 @@ class GalleryActivity : BaseFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setFragment(HomeFragment.getInstance(getSelectedPhotos(),getSelectedVideos(),getDefaultPage()),false)
+        if (savedInstanceState == null) {
+            setFragment(
+                HomeFragment.getInstance(
+                    getSelectedPhotos(),
+                    getSelectedVideos(),
+                    getDefaultPage()
+                ), false
+            )
+        }
     }
 
     private fun getSelectedPhotos(): List<PhotoFile> {
