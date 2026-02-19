@@ -10,7 +10,7 @@ import com.mediapicker.gallery.presentation.utils.DefaultPage
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
 import java.io.Serializable
 
-class GalleryActivity : BaseFragmentActivity() {
+open class GalleryActivity : BaseFragmentActivity() {
 
     companion object {
         fun getGalleryActivityIntent(listOfSelectedPhotos: List<PhotoFile> = emptyList(),
