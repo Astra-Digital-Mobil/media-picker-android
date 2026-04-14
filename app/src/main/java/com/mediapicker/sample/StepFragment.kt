@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.mediapicker.gallery.presentation.fragments.PhotoUploadBottomSheet
 import com.mediapicker.sample.databinding.FragmentStepBinding
 
 class StepFragment : Fragment() {
@@ -29,6 +30,12 @@ class StepFragment : Fragment() {
         binding.actionPhotoCarousalButton.setOnClickListener {
             if (activity is MainActivity) {
                 (activity as MainActivity).jumpToPhotoCarousal()
+            }
+        }
+        binding.actionNativeMediaPicker.setOnClickListener {
+            if (activity is MainActivity) {
+                PhotoUploadBottomSheet.getInstance()
+                    .show(childFragmentManager, PhotoUploadBottomSheet.TAG)
             }
         }
     }

@@ -25,7 +25,8 @@ class GalleryConfig(
     val mediaScanningCriteria: MediaScanningCriteria,
     val textAllCaps: Boolean,
     val galleryLabels: GalleryLabels,
-    val galleryUiConfig: GalleryUIConfig
+    val galleryUiConfig: GalleryUIConfig,
+    val nativeMediaPicker: Boolean
 ) {
 
 
@@ -56,6 +57,7 @@ class GalleryConfig(
         private var mediaScanningCriteria = MediaScanningCriteria()
         private var galleryLabels = GalleryLabels()
         private var galleryUiConfig = GalleryUIConfig()
+        private var nativeMediaPicker: Boolean = false
 
         fun textAllCaps(textAllCaps: Boolean) = apply { this.textAllCaps = textAllCaps }
         fun useMyPhotoCamera(shouldUseMyCamera: Boolean) = apply { this.shouldUsePhotoCamera = shouldUseMyCamera }
@@ -78,6 +80,10 @@ class GalleryConfig(
             this.galleryUiConfig = uiConfig
             return this
         }
+        fun nativeMediaPicker(nativeMediaPicker: Boolean):GalleryConfigBuilder {
+            this.nativeMediaPicker = nativeMediaPicker
+            return this
+        }
 
         fun mediaScanningCriteria(mediaScanningCriteria: MediaScanningCriteria) = apply { this.mediaScanningCriteria = mediaScanningCriteria }
 
@@ -96,7 +102,8 @@ class GalleryConfig(
             mediaScanningCriteria,
             textAllCaps,
             galleryLabels,
-            galleryUiConfig
+            galleryUiConfig,
+            nativeMediaPicker
         )
 
     }

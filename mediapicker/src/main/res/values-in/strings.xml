@@ -2,4 +2,6 @@
 <resources>
     <string name="oss_label_photos_access">Anda telah memberi OLX akses ke foto dan video pilihan Anda</string>
     <string name="oss_label_manage">Kelola</string>
+    <string name="oss_gallery">Galeri</string>
+    <string name="oss_camera">Kamera</string>
 </resources>

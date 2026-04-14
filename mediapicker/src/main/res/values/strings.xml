@@ -2,6 +2,8 @@
 <resources>
     <string name="oss_activity_gallery_no_images" translatable="false">No images.</string>
     <string name="oss_posting_next" translatable="false">Next</string>
+    <string name="oss_gallery">Gallery</string>
+    <string name="oss_camera">Camera</string>
 
     <!--Screen titles -->
     <string name="oss_title_home_screen" translatable="false">Upload Your Photos</string>

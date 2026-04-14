@@ -22,5 +22,7 @@
     <color name="oss_disable_action_button">#5C002f34</color>
     <color name="oss_bg_manage_permissions">#CEDDFF</color>
     <color name="oss_text_manage_permissions">#406367</color>
+    <color name="oss_bottom_sheet_text">#393939</color>
+    <color name="oss_bottom_sheet_icon">#406367</color>
 
 </resources>
