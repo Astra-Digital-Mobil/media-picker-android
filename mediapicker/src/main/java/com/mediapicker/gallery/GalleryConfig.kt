@@ -25,8 +25,7 @@ class GalleryConfig(
     val mediaScanningCriteria: MediaScanningCriteria,
     val textAllCaps: Boolean,
     val galleryLabels: GalleryLabels,
-    val galleryUiConfig: GalleryUIConfig,
-    val nativeMediaPicker: Boolean
+    val galleryUiConfig: GalleryUIConfig
 ) {
 
 
@@ -102,8 +101,7 @@ class GalleryConfig(
             mediaScanningCriteria,
             textAllCaps,
             galleryLabels,
-            galleryUiConfig,
-            nativeMediaPicker
+            galleryUiConfig
         )
 
     }
