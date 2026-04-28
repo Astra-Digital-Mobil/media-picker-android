@@ -56,6 +56,7 @@ class GalleryConfig(
         private var mediaScanningCriteria = MediaScanningCriteria()
         private var galleryLabels = GalleryLabels()
         private var galleryUiConfig = GalleryUIConfig()
+        private var nativeMediaPicker: Boolean = false
 
         fun textAllCaps(textAllCaps: Boolean) = apply { this.textAllCaps = textAllCaps }
         fun useMyPhotoCamera(shouldUseMyCamera: Boolean) = apply { this.shouldUsePhotoCamera = shouldUseMyCamera }
@@ -76,6 +77,10 @@ class GalleryConfig(
         }
         fun galleryUIConfig(uiConfig: GalleryUIConfig):GalleryConfigBuilder{
             this.galleryUiConfig = uiConfig
+            return this
+        }
+        fun nativeMediaPicker(nativeMediaPicker: Boolean):GalleryConfigBuilder {
+            this.nativeMediaPicker = nativeMediaPicker
             return this
         }
 

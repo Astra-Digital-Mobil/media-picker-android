@@ -20,8 +20,10 @@ import permissions.dispatcher.ktx.PermissionsRequester
 import permissions.dispatcher.ktx.constructPermissionsRequest
 
 
-fun Fragment.galleryPermissions(): Array<String> {
+fun Fragment.galleryPermissions(useNativeMediaPicker: Boolean = false): Array<String> {
     val permissions = mutableListOf(CAMERA) //Camera Permission
+    if (useNativeMediaPicker) return permissions.toTypedArray()
+
     when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
             if (isPermissionGranted(READ_MEDIA_IMAGES) && isPermissionGranted(READ_MEDIA_VIDEO)) {
