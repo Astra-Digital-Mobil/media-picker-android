@@ -81,7 +81,8 @@ class MediaGalleryActivity : AppCompatActivity(), View.OnClickListener,
     }
 
     override fun onBackPressed() {
-        closeActivityWithResult(Activity.RESULT_CANCELED)
+        super.onBackPressed()
+        closeActivityWithResult(RESULT_CANCELED)
     }
 
     private fun closeActivityWithResult(resultCode: Int) {
