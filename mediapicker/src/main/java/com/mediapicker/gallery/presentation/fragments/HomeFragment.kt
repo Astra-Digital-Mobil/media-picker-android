@@ -20,6 +20,7 @@ import com.mediapicker.gallery.presentation.activity.GalleryActivity
 import com.mediapicker.gallery.presentation.adapters.PagerAdapter
 import com.mediapicker.gallery.presentation.utils.DefaultPage
 import com.mediapicker.gallery.presentation.utils.MediaPermissionRequest
+import com.mediapicker.gallery.presentation.utils.applyContentInset
 import com.mediapicker.gallery.presentation.utils.constructGalleryPermissionsRequest
 import com.mediapicker.gallery.presentation.utils.constructMediaPermissionsRequest
 import com.mediapicker.gallery.presentation.utils.galleryPermissions
@@ -102,6 +103,8 @@ open class HomeFragment : BaseFragment() {
         childView.findViewById<Button>(R.id.action_permission).setOnClickListener {
             onManagePermissionButtonClick()
         }
+
+        baseBinding.baseContainer.applyContentInset(true)
     }
 
     private fun checkPermissions() {
@@ -264,5 +267,9 @@ open class HomeFragment : BaseFragment() {
                 }
             }
         }
+    }
+
+    override fun addSystemBarPadding(): Boolean {
+        return false
     }
 }
