@@ -16,14 +16,17 @@
         <item name="android:gravity">center</item>
     </style>
 
-    <style name="OSS_BottomSheetDialogTheme" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+    <style name="OSS_BottomSheetDialogTheme" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="bottomSheetStyle">@style/OSS_BottomSheetStyle</item>
     </style>
 
-    <style name="OSS_BottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+    <style name="OSS_BottomSheetStyle" parent="Widget.Material3.BottomSheet.Modal">
         <item name="android:background">@android:color/transparent</item>
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.MyApp.BottomSheet</item>
         <item name="backgroundTint">@android:color/white</item>
+        <item name="paddingBottomSystemWindowInsets">true</item>
     </style>
 
     <style name="ShapeAppearanceOverlay.MyApp.BottomSheet" parent="">
