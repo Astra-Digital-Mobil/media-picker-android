@@ -1,7 +1,9 @@
 package com.mediapicker.gallery.presentation.fragments
 
+import android.app.Dialog
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -16,6 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.mediapicker.gallery.Gallery
@@ -74,6 +77,13 @@ class PhotoUploadBottomSheet : BottomSheetDialogFragment() {
 
 
     override fun getTheme() = R.style.OSS_BottomSheetDialogTheme
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.let { window ->
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

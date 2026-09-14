@@ -19,6 +19,8 @@ abstract class BaseViewPagerItemFragment : BaseFragment() {
 
     var pageTitle = ""
 
+    override fun addSystemBarPadding() = false
+
     protected val bridgeViewModel: BridgeViewModel by lazy {
         getActivityScopedViewModel {
             BridgeViewModel(

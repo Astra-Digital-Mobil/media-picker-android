@@ -1,6 +1,7 @@
 package com.mediapicker.gallery.presentation.activity
 
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import com.mediapicker.gallery.R
@@ -13,6 +14,7 @@ abstract class BaseFragmentActivity : AppCompatActivity() {
     private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         _binding = OssBaseFragmentActivityBinding.inflate(layoutInflater)

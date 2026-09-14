@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment
 import com.mediapicker.gallery.R
 import com.mediapicker.gallery.databinding.OssFragmentBaseBinding
 import com.mediapicker.gallery.domain.entity.PhotoFile
+import com.mediapicker.gallery.presentation.utils.applyContentInset
+import com.mediapicker.gallery.presentation.utils.applyToolbarInset
 import com.mediapicker.gallery.presentation.viewmodels.VideoFile
 
 open abstract class BaseFragment : Fragment() {
@@ -65,6 +67,7 @@ open abstract class BaseFragment : Fragment() {
         setToolbar()
         initViewModels()
         setUpViews()
+        setEdgeToEdge()
     }
 
     @CallSuper
@@ -82,6 +85,19 @@ open abstract class BaseFragment : Fragment() {
                 toolbarView.visibility = View.GONE
             }
             toolbarBackButton.setOnClickListener { onBackPressed() }
+        }
+    }
+
+    private fun setEdgeToEdge() {
+        if (!addSystemBarPadding()) return
+
+        with(baseBinding) {
+            if (shouldHideToolBar()) {
+                baseContainer.applyContentInset(includeTop = true)
+            } else {
+                customToolbar.toolbarContainer.applyToolbarInset()
+                baseContainer.applyContentInset()
+            }
         }
     }
 
@@ -122,5 +138,9 @@ open abstract class BaseFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         baseBinding.baseToolbar.visibility = View.VISIBLE
+    }
+
+    protected open fun addSystemBarPadding(): Boolean {
+        return true
     }
 }
