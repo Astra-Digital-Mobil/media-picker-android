@@ -1,21 +1,14 @@
 package com.mediapicker.gallery.presentation.fragments
 
-import android.app.Dialog
-import android.content.ContentValues
 import android.content.Context
-import android.graphics.Color
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
@@ -166,7 +159,7 @@ class PhotoUploadBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun startTakingPicture() {
-        val lastRequestFileToSave = FileUtils.getNewPhotoFileOnPicturesDirectory()
+        val lastRequestFileToSave = FileUtils.getNewPhotoFileOnAppPicturesDirectory(requireContext())
         val fileUri: Uri = if (android.text.TextUtils.isEmpty(Gallery.getClientAuthority())) {
             Uri.fromFile(lastRequestFileToSave)
         } else {
@@ -182,8 +175,6 @@ class PhotoUploadBottomSheet : BottomSheetDialogFragment() {
 
     private fun handleCameraResult(success: Boolean) {
         if (success && lastRequestFileToSavePath.isNotEmpty()) {
-            insertIntoGallery()
-
             val newPhotoFile = getPhoto(lastRequestFileToSavePath)
             val allPhotos = bridgeViewModel.getSelectedPhotos() + newPhotoFile
 
@@ -221,12 +212,14 @@ class PhotoUploadBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun copyUriToLocalFile(uri: Uri): PhotoFile? {
+    private fun copyUriToLocalFile(context: Context, uri: Uri): PhotoFile? {
         return try {
-            val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return null
-            val file = FileUtils.getNewPhotoFileOnPicturesDirectory()
-            file.outputStream().use { outputStream ->
-                inputStream.copyTo(outputStream)
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+            val file = FileUtils.getNewPhotoFileOnCacheDirectory(context)
+            inputStream.use { input ->
+                file.outputStream().use { outputStream ->
+                    input.copyTo(outputStream)
+                }
             }
             PhotoFile.Builder()
                 .path(file.absolutePath)
@@ -240,10 +233,11 @@ class PhotoUploadBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun handlePhotoPickerResult(uris: List<Uri>) {
+        val context = requireContext().applicationContext
         dismiss()
         if (uris.isEmpty()) return
 
-        val newPhotoFiles = uris.mapNotNull { uri -> copyUriToLocalFile(uri) }
+        val newPhotoFiles = uris.mapNotNull { uri -> copyUriToLocalFile(context, uri) }
         val allPhotos = bridgeViewModel.getSelectedPhotos() + newPhotoFiles
 
         if (allPhotos.isNotEmpty()) {
@@ -262,36 +256,5 @@ class PhotoUploadBottomSheet : BottomSheetDialogFragment() {
             .action(Action.ADD)
             .status(Status.PENDING)
             .build()
-    }
-
-    private fun insertIntoGallery() {
-        val values = ContentValues().apply {
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-                put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-                put(MediaStore.Images.Media.IS_PENDING, 1)
-            } else {
-                put(MediaStore.MediaColumns.DATA, lastRequestFileToSavePath)
-            }
-        }
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            addImageIntoGalleryQAndAboveDevices(values)
-        } else {
-            addImageIntoGalleryBelowQDevices(values)
-        }
-    }
-
-    private fun addImageIntoGalleryBelowQDevices(values: ContentValues) {
-        requireContext().contentResolver
-            .insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun addImageIntoGalleryQAndAboveDevices(values: ContentValues) {
-        val collection =
-            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        requireContext().contentResolver
-            .insert(collection, values)
     }
 }
